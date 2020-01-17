@@ -204,3 +204,58 @@
 
   :end)
 
+(defn cpu-bound-sum
+  [n]
+  (loop [i (int 0)
+         n (int n)]
+    (if (pos? n)
+      (recur (unchecked-inc i) (unchecked-dec n))
+      i)))
+
+(comment
+  (criterium/quick-bench
+    (cpu-bound-sum 100000))
+  ; 33,535895 µs
+
+  (criterium/quick-bench
+    (loop [i (int 0)
+           n (int 1e8)]
+      (if (pos? n)
+        (recur (unchecked-inc i) (unchecked-dec n))
+        i)))
+  ; 59,182515 ms
+
+  (criterium/quick-bench
+    (loop [i (int 0)
+           n (int 1000)]
+      (if (pos? n)
+        (recur (unchecked-add i (cpu-bound-sum 100000)) (unchecked-dec n))
+        i)))
+  ; 29,806815 ms
+
+  (criterium/quick-bench
+    (let [acc (java.util.concurrent.atomic.LongAdder.)
+          limit 1e8
+          parallelism 1000
+          adding (long (/ limit parallelism))]
+      (dotimes [_ parallelism]
+        (.add acc (cpu-bound-sum adding)))
+      (.sum acc)))
+  ; 60,477632 ms
+
+  (criterium/quick-bench
+    (let [acc (java.util.concurrent.atomic.LongAdder.)
+          limit 1e8
+          parallelism 1000
+          adding (long (/ limit parallelism))
+          done-signal (java.util.concurrent.CountDownLatch. parallelism)]
+      (dotimes [_ parallelism]
+        (async/go
+          (.add acc (cpu-bound-sum adding))
+          (.countDown done-signal)
+          :done))
+      (.await done-signal)
+      (.sum acc)))
+  ; 7,178148 ms
+
+  :end)
