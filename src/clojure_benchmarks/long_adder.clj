@@ -346,6 +346,13 @@
           (recur (drop chunk-size xs))))))
   "Elapsed time: 5883.1539 msecs"
 
+  (let [xs (range 1e8)
+        chunk-size (int 1e5)]
+    (time
+      (doseq [chunk (partition chunk-size xs)]
+        (do :nothing))))
+  "Elapsed time: 39011.1054 msecs"
+
   (let [size 1e8]
     (time
       (seq-long-adder-futures 10000 (range size) size)))
