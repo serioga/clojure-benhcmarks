@@ -2,7 +2,11 @@
   "https://t.me/clojure_ru/103864"
   (:require
     [clojure.core.async :as async]
-    [criterium.core :as criterium]))
+    [criterium.core :as criterium]
+    [clojure.core.reducers :as r])
+  (:import
+    (java.util.concurrent.atomic LongAdder)
+    (java.util.concurrent CountDownLatch)))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -10,7 +14,7 @@
 
 (defn count-down-latch-chan
   "https://twitter.com/cgrand/status/801377579726962688"
-  [n]
+  [^long n]
   (async/chan 1 (comp (drop (dec n)) (take 1))))
 
 
@@ -22,7 +26,7 @@
 
   ; LongAdder, no parallelism
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))]
@@ -70,11 +74,11 @@
 
   ; LongAdder + CountDownLatch + core.async
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
-          done-signal (java.util.concurrent.CountDownLatch. parallelism)]
+          done-signal (CountDownLatch. parallelism)]
       (dotimes [_ parallelism]
         (async/go
           (.add acc adding)
@@ -86,11 +90,11 @@
 
   ; LongAdder + CountDownLatch + futures
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
-          done-signal (java.util.concurrent.CountDownLatch. parallelism)]
+          done-signal (CountDownLatch. parallelism)]
       (dotimes [_ parallelism]
         (future
           (.add acc adding)
@@ -102,7 +106,7 @@
 
   ; LongAdder + Phaser + core.async
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
@@ -122,7 +126,7 @@
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
-          done-signal (java.util.concurrent.CountDownLatch. parallelism)]
+          done-signal (CountDownLatch. parallelism)]
       (dotimes [_ parallelism]
         (async/go
           (swap! acc unchecked-add adding)
@@ -134,7 +138,7 @@
 
   ; LongAdder + promise + core.async (buggy due to possible race condition)
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
@@ -155,7 +159,7 @@
 
   ; LongAdder + async pipeline
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
@@ -170,7 +174,7 @@
 
   ; LongAdder + count-down-latch-chan + core.async
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
@@ -185,7 +189,7 @@
 
   ; LongAdder + sync chan + core.async
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
@@ -234,7 +238,7 @@
   ; 29,806815 ms
 
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))]
@@ -244,11 +248,11 @@
   ; 60,477632 ms
 
   (criterium/quick-bench
-    (let [acc (java.util.concurrent.atomic.LongAdder.)
+    (let [acc (LongAdder.)
           limit 1e8
           parallelism 1000
           adding (long (/ limit parallelism))
-          done-signal (java.util.concurrent.CountDownLatch. parallelism)]
+          done-signal (CountDownLatch. parallelism)]
       (dotimes [_ parallelism]
         (async/go
           (.add acc (cpu-bound-sum adding))
@@ -259,3 +263,92 @@
   ; 7,178148 ms
 
   :end)
+
+
+; Work with real sequences
+
+(defn seq-one-pass-reduce
+  [xs]
+  (reduce + xs))
+
+(comment
+  (time
+    (seq-one-pass-reduce (range 1e8)))
+  "=> 4999999950000000"
+
+  (let [xs (range 1e8)]
+    (criterium/quick-bench
+      (seq-one-pass-reduce xs)))
+  "Execution time mean : 2,363287 sec")
+
+
+(defn seq-r-fold
+  [xs]
+  (r/fold + xs))
+
+(comment
+  (time
+    (seq-r-fold (range 1e8)))
+  "=> 4999999950000000"
+
+  (let [xs (range 1e8)]
+    (time
+      (seq-r-fold xs)))
+  "Elapsed time: 2569.7392 msecs"
+
+  (let [xs (vec (range 1e8))]
+    (time
+      (seq-r-fold xs)))
+  "Elapsed time: 19666.1554 msecs")
+
+
+(defn seq-long-adder-one-pass
+  [xs]
+  (let [acc (LongAdder.)]
+    (doseq [x xs]
+      (.add acc x))
+    (.sum acc)))
+
+(comment
+  (time
+    (seq-long-adder-one-pass (range 1e8)))
+  "=> 4999999950000000"
+  "Elapsed time: 5245.6933 msecs"
+  "~3× slower than 'seq-one-pass-reduce")
+
+
+(defn seq-long-adder-futures
+  [^long parallelism, xs, ^long size]
+  (let [acc (LongAdder.)
+        chunk-size (/ size parallelism)
+        done-signal (CountDownLatch. parallelism)]
+    (time
+      (loop [xs xs]
+        (when-some [chunk (seq (take chunk-size xs))]
+          (future
+            (.add acc (seq-one-pass-reduce chunk))
+            (.countDown done-signal))
+          (recur (drop chunk-size xs)))))
+    (.await done-signal)
+    (.sum acc)))
+
+(comment
+  (time
+    (seq-one-pass-reduce (range 1e8)))
+  "Elapsed time: 1924.8458 msecs"
+
+  (let [xs (range 1e8)
+        chunk-size 1e5]
+    (time
+      (loop [xs xs]
+        (when-some [chunk (seq (take chunk-size xs))]
+          (do :nothing)
+          (recur (drop chunk-size xs))))))
+  "Elapsed time: 5883.1539 msecs"
+
+  (let [size 1e8]
+    (time
+      (seq-long-adder-futures 10000 (range size) size)))
+  "Elapsed time: 7070.9469 msecs"
+  "Most time is about chunked sequence processing.")
+
