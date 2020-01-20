@@ -335,7 +335,7 @@
 (comment
   (time
     (seq-one-pass-reduce (range 1e8)))
-  "Elapsed time: 1924.8458 msecs"
+  "Elapsed time: 1757.6774 msecs"
 
   (let [xs (range 1e8)
         chunk-size 1e5]
@@ -344,18 +344,25 @@
         (when-some [chunk (seq (take chunk-size xs))]
           (do :nothing)
           (recur (drop chunk-size xs))))))
-  "Elapsed time: 5883.1539 msecs"
+  "Elapsed time: 4699.6725 msecs"
 
   (let [xs (range 1e8)
         chunk-size (int 1e5)]
     (time
       (doseq [chunk (partition chunk-size xs)]
         (do :nothing))))
-  "Elapsed time: 39011.1054 msecs"
+  "Elapsed time: 21099.6776 msecs"
+
+  (let [xs (range 1e8)
+        chunk-size (int 1e5)]
+    (time
+      (run! (fn [_] (do :nothing))
+        (partition chunk-size xs))))
+  "Elapsed time: 21473.9242 msecs"
 
   (let [size 1e8]
     (time
       (seq-long-adder-futures 10000 (range size) size)))
-  "Elapsed time: 7070.9469 msecs"
+  "Elapsed time: 6016.0142 msecs"
   "Most time is about chunked sequence processing.")
 
