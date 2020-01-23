@@ -19,12 +19,12 @@
 
 (def parallelism
   "Max amount of task processed in parallel."
-  (int 10))
+  10)
 
 
 (def work-buffer-size
   "Max amount of active tasks to process."
-  (int 1000))
+  1000)
 
 
 (defonce
