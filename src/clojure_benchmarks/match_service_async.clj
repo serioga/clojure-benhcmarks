@@ -99,7 +99,10 @@
       #_to service
       (map (fn
              [task]
-             (let [result (handle-task task)]
+             (let [result (try
+                            (handle-task task)
+                            (catch Throwable ex
+                              ex))]
                {:event/command :command/deliver-task-result
                 :event/task task
                 :event/task-result result})))
