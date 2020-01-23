@@ -76,10 +76,10 @@
         (recur
           (case command
             :command/add-task (cond
-                                (nil? (active-tasks task)) (do
-                                                             (println "Task added:" task)
-                                                             (async/>! work task)
-                                                             (conj active-tasks task))
+                                (not (contains? active-tasks task)) (do
+                                                                      (println "Task added:" task)
+                                                                      (async/>! work task)
+                                                                      (conj active-tasks task))
                                 :else active-tasks)
 
             :command/remove-task (disj active-tasks task)
