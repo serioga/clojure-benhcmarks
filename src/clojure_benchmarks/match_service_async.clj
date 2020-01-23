@@ -29,7 +29,7 @@
 
 (defonce
   ^{:doc "Service input channel"
-    :private true} 
+    :private true}
   service (atom nil))
 
 
@@ -75,9 +75,12 @@
       (if-some [{:event/keys [command task] :as event} (async/<! service)]
         (recur
           (case command
-            :command/add-task (do
-                                (async/>! work task)
-                                (conj active-tasks task))
+            :command/add-task (cond
+                                (nil? (active-tasks task)) (do
+                                                             (println "Task added:" task)
+                                                             (async/>! work task)
+                                                             (conj active-tasks task))
+                                :else active-tasks)
 
             :command/remove-task (disj active-tasks task)
 
