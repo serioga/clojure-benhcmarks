@@ -75,12 +75,13 @@
       (if-some [{:event/keys [command task] :as event} (async/<! service)]
         (recur
           (case command
-            :command/add-task (cond
-                                (not (contains? active-tasks task)) (do
-                                                                      (println "Task added:" task)
-                                                                      (async/>! work task)
-                                                                      (conj active-tasks task))
-                                :else active-tasks)
+            :command/add-task (let [new-task? (not (contains? active-tasks task))]
+                                (cond
+                                  new-task? (do
+                                              (println "Task added:" task)
+                                              (async/>! work task)
+                                              (conj active-tasks task))
+                                  :else active-tasks))
 
             :command/remove-task (disj active-tasks task)
 
