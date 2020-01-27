@@ -11,11 +11,25 @@
   (when (odd? x) (inc x)))
 
 
+(defn loop-transform
+  "Transient loop by Andrey Ivanov."
+  [l]
+  (loop [[h & t :as l] l
+         r (transient [])]
+    (if (empty? l)
+      (persistent! r)
+      (recur t (if (odd? h) (conj! r (inc ^long h)) r)))))
+
+
 (comment ; Transform sequence (filter + map) to vector
 
   (->> (range 10)
     (keep test-transform)
     (into []))
+  #_[2 4 6 8 10]
+
+  (->> (range 10)
+    (loop-transform))
   #_[2 4 6 8 10]
 
   (do
@@ -57,6 +71,13 @@
   #_"Execution time mean : 308,451779 ns"
 
   (do
+    "Range (chunked), loop"
+    (criterium/quick-bench
+      (->> (range 10)
+        (loop-transform))))
+  #_"Execution time mean : 545,754354 ns"
+
+  (do
     "Vector, filterv/mapv"
     (criterium/quick-bench
       (->> [0 1 2 3 4 5 6 7 8 9]
@@ -95,6 +116,13 @@
   #_"Execution time mean : 368,914235 ns"
 
   (do
+    "Vector, loop"
+    (criterium/quick-bench
+      (->> [0 1 2 3 4 5 6 7 8 9]
+        (loop-transform))))
+  #_"Execution time mean : 665,425208 ns"
+
+  (do
     "List, filterv/mapv"
     (criterium/quick-bench
       (->> '(0 1 2 3 4 5 6 7 8 9)
@@ -131,6 +159,13 @@
       (->> '(0 1 2 3 4 5 6 7 8 9)
         (transduce (keep test-transform) conj))))
   #_"Execution time mean : 278,435039 ns"
+
+  (do
+    "List, loop"
+    (criterium/quick-bench
+      (->> '(0 1 2 3 4 5 6 7 8 9)
+        (loop-transform))))
+  #_"Execution time mean : 551,470562 ns"
 
 
   :comment)
