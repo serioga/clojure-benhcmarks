@@ -36,6 +36,7 @@
 
 
 (defn test-first
+  "Take first from lazy seq and return printed output."
   [xs]
   (->> xs
     (first)
