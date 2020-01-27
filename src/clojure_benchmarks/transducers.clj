@@ -18,6 +18,14 @@
   #_[2 4 6 8 10]
 
   (do
+    "Range (chunked), filterv/mapv"
+    (criterium/quick-bench
+      (->> (range 10)
+        (filterv odd?)
+        (mapv inc))))
+  #_"Execution time mean : 442,601305 ns"
+
+  (do
     "Range (chunked), traditional, into"
     (criterium/quick-bench
       (->> (range 10)
@@ -48,6 +56,14 @@
   #_"Execution time mean : 308,451779 ns"
 
   (do
+    "Vector, filterv/mapv"
+    (criterium/quick-bench
+      (->> [0 1 2 3 4 5 6 7 8 9]
+        (filterv odd?)
+        (mapv inc))))
+  #_"Execution time mean : 457,845749 ns"
+
+  (do
     "Vector, traditional, into"
     (criterium/quick-bench
       (->> [0 1 2 3 4 5 6 7 8 9]
@@ -76,6 +92,14 @@
       (->> [0 1 2 3 4 5 6 7 8 9]
         (transduce (keep test-transform) conj))))
   #_"Execution time mean : 368,914235 ns"
+
+  (do
+    "List, filterv/mapv"
+    (criterium/quick-bench
+      (->> '(0 1 2 3 4 5 6 7 8 9)
+        (filterv odd?)
+        (mapv inc))))
+  #_"Execution time mean : 407,804544 ns"
 
   (do
     "List, traditional, into"
