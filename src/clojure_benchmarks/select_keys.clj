@@ -112,5 +112,14 @@
     #_{:y nil, :c 3, :b 2, :x nil, :a 1})
   #_"Execution time mean : 30,522068 ns"
 
+  (macroexpand-1 '(clj-fast/inline-select-keys sample [:a :b :c :x :y]))
+  #_(clojure.core/let
+      [map__3903 sample
+       a3904 (clojure.core/get map__3903 :a)
+       b3905 (clojure.core/get map__3903 :b)
+       c3906 (clojure.core/get map__3903 :c)
+       x3907 (clojure.core/get map__3903 :x)
+       y3908 (clojure.core/get map__3903 :y)]
+      {:y y3908, :c c3906, :b b3905, :x x3907, :a a3904})
 
   'comment #_"Invalid implementations")
