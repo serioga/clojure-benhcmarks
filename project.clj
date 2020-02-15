@@ -10,6 +10,8 @@
                  ; http router
                  [functionalbytes/sibiro "0.1.5"]
                  [metosin/reitit "0.4.2"]
+                 ; transducers
+                 [net.cgrand/xforms "0.19.2"]
                  ; templating
                  [cljstache "2.0.5"]
                  [com.github.spullara.mustache.java/compiler "0.9.6"]
