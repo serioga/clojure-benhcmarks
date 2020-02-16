@@ -1,7 +1,8 @@
-(ns clojure-benchmarks.url
+(ns clojure-benchmarks.http-url
   "URL manipulation."
   (:require 
-    [clojure.string :as string])
+    [clojure.string :as string]
+    [criterium.core])
   (:import
     (clojure.lang MapEntry)
     (java.net URI URL URLDecoder)))
