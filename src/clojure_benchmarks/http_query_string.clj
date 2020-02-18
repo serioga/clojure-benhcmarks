@@ -182,12 +182,12 @@
   (criterium.core/quick-bench
     (->query-string [])
     #_"")
-  #_"Execution time mean : 89,872093 ns"
+  #_"Execution time mean : 60,162402 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string [])
     #_"")
-  #_"Execution time mean : 71,778755 ns"
+  #_"Execution time mean : 81,846670 ns"
 
   (criterium.core/quick-bench
     (->query-string "")
@@ -197,7 +197,7 @@
   (criterium.core/quick-bench
     (reitit.impl/query-string "")
     #_"")
-  #_"Execution time mean : 111,569508 ns"
+  #_"Execution time mean : 121,156767 ns"
 
   (criterium.core/quick-bench
     (->query-string nil)
@@ -207,42 +207,42 @@
   (criterium.core/quick-bench
     (reitit.impl/query-string nil)
     #_"")
-  #_"Execution time mean : 61,141218 ns"
+  #_"Execution time mean : 73,842325 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string {:a ["1" "2" "3" "4" "5"]})
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 3,271650 µs"
+  #_"Execution time mean : 2,959894 µs"
 
   (criterium.core/quick-bench
     (->query-string {:a ["1" "2" "3" "4" "5"]})
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 1,190203 µs"
+  #_"Execution time mean : 1,032663 µs"
 
   (criterium.core/quick-bench
     (->query-string [[:a "1"] [:a "2"] [:a "3"] [:a "4"] [:a "5"]])
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 1,854797 µs"
+  #_"Execution time mean : 1,637415 µs"
 
   (criterium.core/quick-bench
     (->query-string {:a "1" :b "1" :c "1" :d "1" :e "1"})
     #_"a=1&b=1&c=1&d=1&e=1")
-  #_"Execution time mean : 1,991349 µs"
+  #_"Execution time mean : 1,808396 µs"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string {:a "1" :b "1" :c "1" :d "1" :e "1"})
     #_"a=1&b=1&c=1&d=1&e=1")
-  #_"Execution time mean : 3,069337 µs"
+  #_"Execution time mean : 2,649090 µs"
 
   (criterium.core/quick-bench
     (->query-string [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_"a=&b=&c=&d=1&e=1&f=1&f=2")
-  #_"Execution time mean : 1,998782 µs"
+  #_"Execution time mean : 1,756097 µs"
 
   (criterium.core/quick-bench
     (into [] xf:data->kv-pair [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_[[:a ""] ["b" ""] ["c" ""] ["d" "1"] ["e" "1"] ["f" "1"] ["f" "2"]])
-  #_"Execution time mean : 1,276573 µs"
+  #_"Execution time mean : 1,019710 µs"
 
 
   (->query-string [["a" ["1" "2"] [1 2]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])
@@ -258,7 +258,7 @@
     (-> "x=1&y=2&z=3"
       (query-string-seq)
       (reitit.impl/query-string)))
-  #_"Execution time mean : 3,880725 µs"
+  #_"Execution time mean : 3,004262 µs"
 
   (criterium.core/quick-bench
     (query-string-map "x=1&y=2&z=3")
