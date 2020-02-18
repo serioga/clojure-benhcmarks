@@ -116,14 +116,15 @@
 
 (defn ^:private xf:kv-pair->query-string
   "Transforms kv-pair to query string tokens.
-   (!) Produces extra `&` before first item."
-  ([] (xf:kv-pair->query-string name str))
-  ([key-fn, val-fn]
+   (!) Produces extra `&` before first item.
+   `drop-first` is a function over accumulated result to remove extra `&`."
+  ([drop-first] (xf:kv-pair->query-string name, str, drop-first))
+  ([key-fn, val-fn, drop-first]
    (fn
      [rf]
      (fn kv-pair->query-string
        ([] (rf))
-       ([acc] (rf acc))
+       ([acc] (rf (drop-first acc)))
        ([acc kv] (-> acc
                    (rf "&")
                    (rf (URLEncoder/encode (key-fn (kv-key kv))))
@@ -137,13 +138,6 @@
                              (.deleteCharAt sb 0))
                            (.toString sb)))
     ([^StringBuilder sb, v] (.append sb (str v))))
-
-(def ^:private rf:str-drop-first
-  "Reducing function, concatenates input values as string, drops first char."
-  (completing rfs/str! (fn [^StringBuilder sb]
-                         (when (pos? (.length sb))
-                           (.deleteCharAt sb 0))
-                         (.toString sb))))
 
 (defn ->query-string
   "Convert data sequence to query string."
@@ -173,8 +167,10 @@
    (when (data-seq? data)
      (transduce (comp
                   xf:data->kv-pair
-                  (xf:kv-pair->query-string key-fn val-fn))
-       rf:str-drop-first data))))
+                  (xf:kv-pair->query-string key-fn val-fn (fn [^StringBuilder sb]
+                                                            (cond-> sb
+                                                              (pos? (.length sb)) (.deleteCharAt 0)))))
+       rfs/str data))))
 
 (t/deftest test:hither-and-thither
   (t/is (= "x=1&y=2&z=3&x=4+5" (-> "x=1&y=2&z=3&x=4+5"
