@@ -44,8 +44,8 @@
   ([s, key-fn, val-fn]
    (let [kv (string/split s #"=" 2)]
      (kv-pair
-       (key-fn (URLDecoder/decode (kv 0)))
-       (val-fn (URLDecoder/decode (get kv 1 "")))))))
+       (key-fn (URLDecoder/decode (kv 0) "UTF-8"))
+       (val-fn (URLDecoder/decode (get kv 1 "") "UTF-8"))))))
 
 (defn ^:private xf:query-params->kv-pairs
   "Transformation of query param `k=v` in kv-pair representation."
@@ -127,9 +127,9 @@
        ([acc] (rf (drop-first acc)))
        ([acc kv] (-> acc
                    (rf "&")
-                   (rf (URLEncoder/encode (key-fn (kv-key kv))))
+                   (rf (URLEncoder/encode (key-fn (kv-key kv)) "UTF-8"))
                    (rf "=")
-                   (rf (URLEncoder/encode (val-fn (kv-val kv))))))))))
+                   (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
 
 #_(defn ^:private rf:str-drop-first
     ([] (StringBuilder.))
