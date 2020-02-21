@@ -99,46 +99,42 @@
 (defn ^:private xf:data->kv-pair
   "Transform data sequence item to query string kv-pair."
   [rf]
-  (let [rf-vals (fn [acc k vs]
-                  (transduce (map (partial kv-pair k)) (completing rf identity) acc vs))]
+  (let [rf-vals (fn [result k vs]
+                  (transduce (map (partial kv-pair k)) (completing rf identity) result vs))]
     (fn data->kv-pair
       ([] (rf))
-      ([acc] (rf acc))
-      ([acc x] (cond
-                 (vector? x) (case (count x)
-                               0 (rf acc (kv-pair "" ""))
-                               1 (rf acc (kv-pair (x 0) ""))
-                               2 (let [k (x 0), v (x 1)]
-                                   (cond
-                                     (data-seq? v), (rf-vals acc k v)
-                                     :else (rf acc (kv-pair k v))))
-                               (rf-vals acc (x 0) (subvec x 1)))
-                 :else (rf acc (kv-pair x "")))))))
+      ([result] (rf result))
+      ([result x] (cond
+                    (vector? x) (case (count x)
+                                  0 (rf result (kv-pair "" ""))
+                                  1 (rf result (kv-pair (x 0) ""))
+                                  2 (let [k (x 0), v (x 1)]
+                                      (cond
+                                        (data-seq? v), (rf-vals result k v)
+                                        :else (rf result (kv-pair k v))))
+                                  (rf-vals result (x 0) (subvec x 1)))
+                    :else (rf result (kv-pair x "")))))))
 
 (defn ^:private xf:kv-pair->query-string
   "Transforms kv-pair to query string tokens.
-   (!) Produces extra `&` before first item.
-   `drop-first` is a function over accumulated result to remove extra `&`."
-  ([drop-first] (xf:kv-pair->query-string name, str, drop-first))
-  ([key-fn, val-fn, drop-first]
+   (!) Produces extra `&` before first item."
+  ([] (xf:kv-pair->query-string name, str))
+  ([key-fn, val-fn]
    (fn
      [rf]
      (fn kv-pair->query-string
        ([] (rf))
-       ([acc] (rf (drop-first acc)))
-       ([acc kv] (-> acc
-                   (rf "&")
-                   (rf (URLEncoder/encode (key-fn (kv-key kv)) "UTF-8"))
-                   (rf "=")
-                   (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
+       ([result] (rf result))
+       ([result kv] (-> result
+                      (rf "&")
+                      (rf (URLEncoder/encode (key-fn (kv-key kv)) "UTF-8"))
+                      (rf "=")
+                      (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
 
-#_(defn ^:private rf:str-drop-first
-    ([] (StringBuilder.))
-    ([^StringBuilder sb] (do
-                           (when (pos? (.length sb))
-                             (.deleteCharAt sb 0))
-                           (.toString sb)))
-    ([^StringBuilder sb, v] (.append sb (str v))))
+(def ^:private rf:str-drop-first
+  (completing rfs/str (fn [^StringBuilder sb]
+                        (rfs/str (cond-> sb
+                                   (pos? (.length sb)) (.deleteCharAt 0))))))
 
 (defn ->query-string
   "Convert data sequence to query string."
@@ -163,15 +159,13 @@
                    (->query-string "abc")))
            (t/is (nil?
                    (->query-string nil))))}
-  ([data] (->query-string data name str))
-  ([data, key-fn, val-fn]
+  ([data] (->query-string name str data))
+  ([key-fn, val-fn, data]
    (when (data-seq? data)
      (transduce (comp
                   xf:data->kv-pair
-                  (xf:kv-pair->query-string key-fn val-fn (fn [^StringBuilder sb]
-                                                            (cond-> sb
-                                                              (pos? (.length sb)) (.deleteCharAt 0)))))
-       rfs/str data))))
+                  (xf:kv-pair->query-string key-fn val-fn))
+       rf:str-drop-first, data))))
 
 (t/deftest test:hither-and-thither
   (t/is (= "x=1&y=2&z=3&x=4+5" (-> "x=1&y=2&z=3&x=4+5"
