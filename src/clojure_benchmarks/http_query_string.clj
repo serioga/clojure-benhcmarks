@@ -52,11 +52,11 @@
   [key-fn, val-fn]
   (map #(query-param->kv-pair % key-fn val-fn)))
 
-(defn query-string->map-simplified
+(defn query-string->map-simple
   "Collect query params to map, duplicate keys are overwritten."
   {:test (fn []
-           (t/is (= {"x" "2", "y" "2"} (query-string->map-simplified "x=1&x=2&y=2"))))}
-  ([s] (query-string->map-simplified s, identity, identity))
+           (t/is (= {"x" "2", "y" "2"} (query-string->map-simple "x=1&x=2&y=2"))))}
+  ([s] (query-string->map-simple s, identity, identity))
   ([s, key-fn, val-fn]
    (transduce (xf:query-params->kv-pairs key-fn val-fn)
      conj {} (parse-query-params s))))
@@ -74,20 +74,20 @@
                     :else [v (kv-val kv)])]
             (assoc m k v))))
 
-(defn query-string-map
+(defn query-string->map
   "Collect query params to map, duplicate keys are collected as vector of values."
   {:test (fn []
-           (t/is (= {"x" ["1" "2"], "y" "2"} (query-string-map "x=1&x=2&y=2"))))}
-  ([s] (query-string-map s, identity, identity))
+           (t/is (= {"x" ["1" "2"], "y" "2"} (query-string->map "x=1&x=2&y=2"))))}
+  ([s] (query-string->map s, identity, identity))
   ([s, key-fn, val-fn]
    (transduce (xf:query-params->kv-pairs key-fn, val-fn)
      rf:kv-pairs->map (parse-query-params s))))
 
-(defn query-string-seq
+(defn query-string->kv-pairs
   "Collect query params to sequence of kv-pairs."
   {:test (fn []
-           (t/is (= '(["x" "1"] ["x" "2"] ["y" "2"]) (query-string-seq "x=1&x=2&y=2"))))}
-  ([s] (query-string-seq s, identity, identity))
+           (t/is (= '(["x" "1"] ["x" "2"] ["y" "2"]) (query-string->kv-pairs "x=1&x=2&y=2"))))}
+  ([s] (query-string->kv-pairs s, identity, identity))
   ([s, key-fn, val-fn]
    (sequence (xf:query-params->kv-pairs key-fn, val-fn) (parse-query-params s))))
 
@@ -120,149 +120,184 @@
    (!) Produces extra `&` before first item."
   ([] (xf:kv-pair->query-string name, str))
   ([key-fn, val-fn]
-   (fn
-     [rf]
-     (fn kv-pair->query-string
-       ([] (rf))
-       ([result] (rf result))
-       ([result kv] (-> result
-                      (rf "&")
-                      (rf (URLEncoder/encode (key-fn (kv-key kv)) "UTF-8"))
-                      (rf "=")
-                      (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
+   (fn [rf] (fn kv-pair->query-string
+              ([] (rf))
+              ([result] (rf result))
+              ([result kv] (-> result
+                             (rf "&")
+                             (rf (URLEncoder/encode (key-fn (kv-key kv)) "UTF-8"))
+                             (rf "=")
+                             (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
 
 (def ^:private rf:str-drop-first
   (completing rfs/str (fn [^StringBuilder sb]
                         (rfs/str (cond-> sb
                                    (pos? (.length sb)) (.deleteCharAt 0))))))
 
-(defn ->query-string
+(defn ^:private kv-pairs->query-string*
+  [xform, xs]
+  (when (data-seq? xs)
+    (transduce xform rf:str-drop-first, xs)))
+
+(defn kv-pairs->query-string
+  "Convert kv-pairs to query string."
+  ([xs]
+   (kv-pairs->query-string* (xf:kv-pair->query-string) xs))
+  ([key-fn, val-fn, xs]
+   (kv-pairs->query-string* (xf:kv-pair->query-string key-fn, val-fn) xs))
+  ([xform, xs]
+   (kv-pairs->query-string* (comp xform (xf:kv-pair->query-string)) xs))
+  ([key-fn, val-fn, xform, xs]
+   (kv-pairs->query-string* (comp xform (xf:kv-pair->query-string key-fn, val-fn)) xs)))
+
+(defn data->query-string
   "Convert data sequence to query string."
-  {:test (fn []
-           (t/is (= "a=1&b=2&c=3&d=4"
-                   (->query-string [["a" "1"] ["b" "2"] ["c" "3"] ["d" "4"]])))
-           (t/is (= "a=&b=&c=&d="
-                   (->query-string [["a" ""] ["b" ""] ["c" ""] ["d" ""]])))
-           (t/is (= "a=&b=&c=&d="
-                   (->query-string ["a" "b" "c" "d"])))
-           (t/is (= "a=&b=&c=&d="
-                   (->query-string [["a"] ["b"] ["c"] ["d"]])))
-           (t/is (= "a=1&a=2&b=1&b=2&c=1&c=2&d=1&d=2"
-                   (->query-string [["a" "1" "2"] ["b" "1" "2"] ["c" "1" "2"] ["d" "1" "2"]])))
-           (t/is (= "a=1&a=2&b=1&b=2&c=1&c=2&d=1&d=2"
-                   (->query-string [["a" ["1" "2"]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])))
-           (t/is (= "a=0&a=1&a=2&a=3&a=4"
-                   (->query-string [["a" (range 5)]])))
-           (t/is (= ""
-                   (->query-string [["a" []]])))
-           (t/is (nil?
-                   (->query-string "abc")))
-           (t/is (nil?
-                   (->query-string nil))))}
-  ([data] (->query-string name str data))
-  ([key-fn, val-fn, data]
-   (when (data-seq? data)
-     (transduce (comp
-                  xf:data->kv-pair
-                  (xf:kv-pair->query-string key-fn val-fn))
-       rf:str-drop-first, data))))
+  ([xs]
+   (kv-pairs->query-string xf:data->kv-pair, xs))
+  ([key-fn, val-fn, xs]
+   (kv-pairs->query-string key-fn, val-fn, xf:data->kv-pair, xs))
+  ([xform, xs]
+   (kv-pairs->query-string (comp xform xf:data->kv-pair), xs))
+  ([key-fn, val-fn, xform, xs]
+   (kv-pairs->query-string key-fn, val-fn, (comp xform xf:data->kv-pair), xs)))
+
+
+(t/deftest test:data->query-string
+  (t/is (= "a=1&b=2&c=3&d=4"
+          (data->query-string [["a" "1"] ["b" "2"] ["c" "3"] ["d" "4"]])))
+  (t/is (= "a=&b=&c=&d="
+          (data->query-string [["a" ""] ["b" ""] ["c" ""] ["d" ""]])))
+  (t/is (= "a=&b=&c=&d="
+          (data->query-string ["a" "b" "c" "d"])))
+  (t/is (= "a=&b=&c=&d="
+          (data->query-string [["a"] ["b"] ["c"] ["d"]])))
+  (t/is (= "a=1&a=2&b=1&b=2&c=1&c=2&d=1&d=2"
+          (data->query-string [["a" "1" "2"] ["b" "1" "2"] ["c" "1" "2"] ["d" "1" "2"]])))
+  (t/is (= "a=1&a=2&b=1&b=2&c=1&c=2&d=1&d=2"
+          (data->query-string [["a" ["1" "2"]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])))
+  (t/is (= "a=0&a=1&a=2&a=3&a=4"
+          (data->query-string [["a" (range 5)]])))
+  (t/is (= ""
+          (data->query-string [["a" []]])))
+  (t/is (nil?
+          (data->query-string "abc")))
+  (t/is (nil?
+          (data->query-string nil))))
 
 (t/deftest test:hither-and-thither
   (t/is (= "x=1&y=2&z=3&x=4+5" (-> "x=1&y=2&z=3&x=4+5"
-                                 (query-string-seq)
-                                 (->query-string)))))
+                                 (query-string->kv-pairs)
+                                 (kv-pairs->query-string)))))
 
 (comment
 
   (criterium.core/quick-bench
-    (->query-string [])
+    (data->query-string {:a "1" :b "1" :c "1" :d "1" :e ["1"]}))
+  #_"Execution time mean : 2,030352 µs"
+
+  (criterium.core/quick-bench
+    (data->query-string {:a "1" :b "1" :c "1" :d "1" :e "1"}))
+  #_"Execution time mean : 1,675809 µs"
+
+  (criterium.core/quick-bench
+    (kv-pairs->query-string {:a "1" :b "1" :c "1" :d "1" :e "1"}))
+  #_"Execution time mean : 1,162014 µs"
+
+  (criterium.core/quick-bench
+    (kv-pairs->query-string (remove #(identical? :c (key %)))
+      {:a "1" :b "1" :c "1" :d "1" :e "1"}))
+  #_"Execution time mean : 1,089462 µs"
+
+
+  (criterium.core/quick-bench
+    (data->query-string [])
     #_"")
-  #_"Execution time mean : 60,162402 ns"
+  #_"Execution time mean : 86,118306 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string [])
     #_"")
-  #_"Execution time mean : 81,846670 ns"
+  #_"Execution time mean : 89,483609 ns"
 
   (criterium.core/quick-bench
-    (->query-string "")
+    (data->query-string "")
     #_nil)
-  #_"Execution time mean : 44,305201 ns"
+  #_"Execution time mean : 61,814436 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string "")
     #_"")
-  #_"Execution time mean : 121,156767 ns"
+  #_"Execution time mean : 123,012942 ns"
 
   (criterium.core/quick-bench
-    (->query-string nil)
+    (data->query-string nil)
     #_nil)
-  #_"Execution time mean : 7,903445 ns"
+  #_"Execution time mean : 22,235222 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string nil)
     #_"")
-  #_"Execution time mean : 73,842325 ns"
+  #_"Execution time mean : 79,813464 ns"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string {:a ["1" "2" "3" "4" "5"]})
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 2,959894 µs"
+  #_"Execution time mean : 3,213404 µs"
 
   (criterium.core/quick-bench
-    (->query-string {:a ["1" "2" "3" "4" "5"]})
+    (data->query-string {:a ["1" "2" "3" "4" "5"]})
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 1,032663 µs"
+  #_"Execution time mean : 1,494281 µs"
 
   (criterium.core/quick-bench
-    (->query-string [[:a "1"] [:a "2"] [:a "3"] [:a "4"] [:a "5"]])
+    (data->query-string [[:a "1"] [:a "2"] [:a "3"] [:a "4"] [:a "5"]])
     #_"a=1&a=2&a=3&a=4&a=5")
-  #_"Execution time mean : 1,637415 µs"
+  #_"Execution time mean : 1,955790 µs"
 
   (criterium.core/quick-bench
-    (->query-string {:a "1" :b "1" :c "1" :d "1" :e "1"})
+    (data->query-string {:a "1" :b "1" :c "1" :d "1" :e "1"})
     #_"a=1&b=1&c=1&d=1&e=1")
-  #_"Execution time mean : 1,808396 µs"
+  #_"Execution time mean : 2,121738 µs"
 
   (criterium.core/quick-bench
     (reitit.impl/query-string {:a "1" :b "1" :c "1" :d "1" :e "1"})
     #_"a=1&b=1&c=1&d=1&e=1")
-  #_"Execution time mean : 2,649090 µs"
+  #_"Execution time mean : 2,904542 µs"
 
   (criterium.core/quick-bench
-    (->query-string [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
+    (data->query-string [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_"a=&b=&c=&d=1&e=1&f=1&f=2")
-  #_"Execution time mean : 1,756097 µs"
+  #_"Execution time mean : 2,416094 µs"
 
   (criterium.core/quick-bench
     (into [] xf:data->kv-pair [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_[[:a ""] ["b" ""] ["c" ""] ["d" "1"] ["e" "1"] ["f" "1"] ["f" "2"]])
-  #_"Execution time mean : 1,019710 µs"
+  #_"Execution time mean : 1,336956 µs"
 
-  (->query-string [["a" ["1" "2"] [1 2]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])
+  (data->query-string [["a" ["1" "2"] [1 2]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])
   #_"a=%5B%221%22+%222%22%5D&a=%5B1+2%5D&b=1&b=2&c=1&c=2&d=1&d=2"
 
   (criterium.core/quick-bench
     (-> "x=1&y=2&z=3"
-      (query-string-seq)
-      (->query-string)))
-  #_"Execution time mean : 2,670347 µs"
+      (query-string->kv-pairs)
+      (kv-pairs->query-string)))
+  #_"Execution time mean : 2,445557 µs"
 
   (criterium.core/quick-bench
     (-> "x=1&y=2&z=3"
-      (query-string-seq)
+      (query-string->kv-pairs)
       (reitit.impl/query-string)))
-  #_"Execution time mean : 3,004262 µs"
+  #_"Execution time mean : 3,246983 µs"
 
   (criterium.core/quick-bench
-    (query-string-map "x=1&y=2&z=3")
+    (query-string->map "x=1&y=2&z=3")
     #_{"x" "1", "y" "2", "z" "3"})
-  #_"Execution time mean : 1,477243 µs"
+  #_"Execution time mean : 1,565012 µs"
 
   (criterium.core/quick-bench
-    (query-string->map-simplified "x=1&y=2&z=3")
+    (query-string->map-simple "x=1&y=2&z=3")
     #_{"x" "1", "y" "2", "z" "3"})
-  #_"Execution time mean : 1,387769 µs"
+  #_"Execution time mean : 1,487659 µs"
 
 
   'comment)
