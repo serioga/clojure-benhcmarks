@@ -99,7 +99,8 @@
 (defn ^:private xf:data->kv-pair
   "Transform data sequence item to query string kv-pair."
   [rf]
-  (let [rf-vals (fn [acc k vs] (reduce #(rf %1 (kv-pair k %2)) acc vs))]
+  (let [rf-vals (fn [acc k vs]
+                  (transduce (map (partial kv-pair k)) (completing rf identity) acc vs))]
     (fn data->kv-pair
       ([] (rf))
       ([acc] (rf acc))
@@ -243,7 +244,6 @@
     (into [] xf:data->kv-pair [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_[[:a ""] ["b" ""] ["c" ""] ["d" "1"] ["e" "1"] ["f" "1"] ["f" "2"]])
   #_"Execution time mean : 1,019710 µs"
-
 
   (->query-string [["a" ["1" "2"] [1 2]] ["b" ["1" "2"]] ["c" ["1" "2"]] ["d" ["1" "2"]]])
   #_"a=%5B%221%22+%222%22%5D&a=%5B1+2%5D&b=1&b=2&c=1&c=2&d=1&d=2"
