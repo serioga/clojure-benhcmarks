@@ -7,7 +7,7 @@
 (set! *unchecked-math* :warn-on-boxed)
 
 
-(def ^:dynamic *identity-count* (atom 0))
+(def ^:dynamic *var'identity-count* (atom 0))
 (def ^:dynamic *enable-identity-count* false)
 
 
@@ -15,16 +15,16 @@
   "Same as `identity` but counting calls if `*enable-identity-count*`."
   [x]
   (when *enable-identity-count*
-    (swap! *identity-count* inc))
+    (swap! *var'identity-count* inc))
   x)
 
 
 (defn run-with-identity-count*
   [f]
   (with-bindings {#'*enable-identity-count* true
-                  #'*identity-count* (atom 0)}
+                  #'*var'identity-count* (atom 0)}
     (let [x (f)]
-      (println "identity-count:" @*identity-count*)
+      (println "identity-count:" @*var'identity-count*)
       x)))
 
 

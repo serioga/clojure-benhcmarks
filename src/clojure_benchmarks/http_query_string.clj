@@ -47,7 +47,7 @@
        (key-fn (URLDecoder/decode (kv 0) "UTF-8"))
        (val-fn (URLDecoder/decode (get kv 1 "") "UTF-8"))))))
 
-(defn ^:private xf:query-params->kv-pairs
+(defn ^:private xf'query-params->kv-pairs
   "Transformation of query param `k=v` in kv-pair representation."
   [key-fn, val-fn]
   (map #(query-param->kv-pair % key-fn val-fn)))
@@ -58,10 +58,10 @@
            (t/is (= {"x" "2", "y" "2"} (query-string->map-simple "x=1&x=2&y=2"))))}
   ([s] (query-string->map-simple s, identity, identity))
   ([s, key-fn, val-fn]
-   (transduce (xf:query-params->kv-pairs key-fn val-fn)
+   (transduce (xf'query-params->kv-pairs key-fn val-fn)
      conj {} (parse-query-params s))))
 
-(defn ^:private rf:kv-pairs->map
+(defn ^:private rf'kv-pairs->map
   "Reducing function kv-pairs to hash-map.
    Values of duplicate keys are collected as vector of values."
   ([] {})
@@ -80,8 +80,8 @@
            (t/is (= {"x" ["1" "2"], "y" "2"} (query-string->map "x=1&x=2&y=2"))))}
   ([s] (query-string->map s, identity, identity))
   ([s, key-fn, val-fn]
-   (transduce (xf:query-params->kv-pairs key-fn, val-fn)
-     rf:kv-pairs->map (parse-query-params s))))
+   (transduce (xf'query-params->kv-pairs key-fn, val-fn)
+     rf'kv-pairs->map (parse-query-params s))))
 
 (defn query-string->kv-pairs
   "Collect query params to sequence of kv-pairs."
@@ -89,14 +89,14 @@
            (t/is (= '(["x" "1"] ["x" "2"] ["y" "2"]) (query-string->kv-pairs "x=1&x=2&y=2"))))}
   ([s] (query-string->kv-pairs s, identity, identity))
   ([s, key-fn, val-fn]
-   (sequence (xf:query-params->kv-pairs key-fn, val-fn) (parse-query-params s))))
+   (sequence (xf'query-params->kv-pairs key-fn, val-fn) (parse-query-params s))))
 
 (defn ^:private data-seq?
   "If data item should be processed sequentially."
   [x]
   (or (coll? x) (sequential? x)))
 
-(defn ^:private xf:data->kv-pair
+(defn ^:private xf'data->kv-pair
   "Transform data sequence item to query string kv-pair."
   [rf]
   (let [rf-vals (fn [result k vs]
@@ -115,10 +115,10 @@
                                   (rf-vals result (x 0) (subvec x 1)))
                     :else (rf result (kv-pair x "")))))))
 
-(defn ^:private xf:kv-pair->query-string
+(defn ^:private xf'kv-pair->query-string
   "Transforms kv-pair to query string tokens.
    (!) Produces extra `&` before first item."
-  ([] (xf:kv-pair->query-string name, str))
+  ([] (xf'kv-pair->query-string name, str))
   ([key-fn, val-fn]
    (fn [rf] (fn kv-pair->query-string
               ([] (rf))
@@ -129,7 +129,7 @@
                              (rf "=")
                              (rf (URLEncoder/encode (val-fn (kv-val kv)) "UTF-8"))))))))
 
-(def ^:private rf:str-drop-first
+(def ^:private rf'str-drop-first
   (completing rfs/str (fn [^StringBuilder sb]
                         (rfs/str (cond-> sb
                                    (pos? (.length sb)) (.deleteCharAt 0))))))
@@ -137,32 +137,32 @@
 (defn ^:private kv-pairs->query-string*
   [xform, xs]
   (when (data-seq? xs)
-    (transduce xform rf:str-drop-first, xs)))
+    (transduce xform rf'str-drop-first, xs)))
 
 (defn kv-pairs->query-string
   "Convert kv-pairs to query string."
   ([xs]
-   (kv-pairs->query-string* (xf:kv-pair->query-string) xs))
+   (kv-pairs->query-string* (xf'kv-pair->query-string) xs))
   ([key-fn, val-fn, xs]
-   (kv-pairs->query-string* (xf:kv-pair->query-string key-fn, val-fn) xs))
+   (kv-pairs->query-string* (xf'kv-pair->query-string key-fn, val-fn) xs))
   ([xform, xs]
-   (kv-pairs->query-string* (comp xform (xf:kv-pair->query-string)) xs))
+   (kv-pairs->query-string* (comp xform (xf'kv-pair->query-string)) xs))
   ([key-fn, val-fn, xform, xs]
-   (kv-pairs->query-string* (comp xform (xf:kv-pair->query-string key-fn, val-fn)) xs)))
+   (kv-pairs->query-string* (comp xform (xf'kv-pair->query-string key-fn, val-fn)) xs)))
 
 (defn data->query-string
   "Convert data sequence to query string."
   ([xs]
-   (kv-pairs->query-string xf:data->kv-pair, xs))
+   (kv-pairs->query-string xf'data->kv-pair, xs))
   ([key-fn, val-fn, xs]
-   (kv-pairs->query-string key-fn, val-fn, xf:data->kv-pair, xs))
+   (kv-pairs->query-string key-fn, val-fn, xf'data->kv-pair, xs))
   ([xform, xs]
-   (kv-pairs->query-string (comp xform xf:data->kv-pair), xs))
+   (kv-pairs->query-string (comp xform xf'data->kv-pair), xs))
   ([key-fn, val-fn, xform, xs]
-   (kv-pairs->query-string key-fn, val-fn, (comp xform xf:data->kv-pair), xs)))
+   (kv-pairs->query-string key-fn, val-fn, (comp xform xf'data->kv-pair), xs)))
 
 
-(t/deftest test:data->query-string
+(t/deftest test'data->query-string
   (t/is (= "a=1&b=2&c=3&d=4"
           (data->query-string [["a" "1"] ["b" "2"] ["c" "3"] ["d" "4"]])))
   (t/is (= "a=&b=&c=&d="
@@ -184,7 +184,7 @@
   (t/is (nil?
           (data->query-string nil))))
 
-(t/deftest test:hither-and-thither
+(t/deftest test'hither-and-thither
   (t/is (= "x=1&y=2&z=3&x=4+5" (-> "x=1&y=2&z=3&x=4+5"
                                  (query-string->kv-pairs)
                                  (kv-pairs->query-string)))))
@@ -270,7 +270,7 @@
   #_"Execution time mean : 2,416094 µs"
 
   (criterium.core/quick-bench
-    (into [] xf:data->kv-pair [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
+    (into [] xf'data->kv-pair [:a "b" ["c"] ["d" "1"] ["e" ["1"]] ["f" "1" "2"]])
     #_[[:a ""] ["b" ""] ["c" ""] ["d" "1"] ["e" "1"] ["f" "1"] ["f" "2"]])
   #_"Execution time mean : 1,336956 µs"
 
