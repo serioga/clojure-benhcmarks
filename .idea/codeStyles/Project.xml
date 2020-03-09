@@ -1,6 +1,6 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
-    <option name="SOFT_MARGINS" value="100" />
+    <option name="RIGHT_MARGIN" value="100" />
     <ClojureCodeStyleSettings>{
   :clojure.core/cond-&gt; 1
   :clojure.core/defmulti 1
