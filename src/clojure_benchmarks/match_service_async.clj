@@ -48,21 +48,21 @@
   [handle-task, result-chan]
   (stop-service!)
   (reset! service
-    (init-service handle-task, result-chan)))
+          (init-service handle-task, result-chan)))
 
 
 (defn add-service-task
   [task]
   (some-> @service
-    (async/put! {:event/command :command/add-task
-                 :event/task task})))
+          (async/put! {:event/command :command/add-task
+                       :event/task task})))
 
 
 (defn remove-service-task
   [task]
   (some-> @service
-    (async/put! {:event/command :command/remove-task
-                 :event/task task})))
+          (async/put! {:event/command :command/remove-task
+                       :event/task task})))
 
 
 (defn ^:private init-service
@@ -77,29 +77,26 @@
           (case command
             :command/add-task (let [new-task? (not (contains? active-tasks task))]
                                 (cond
-                                  new-task? (do
-                                              (println "Task added:" task)
-                                              (async/>! work task)
-                                              (conj active-tasks task))
+                                  new-task? (do (println "Task added:" task)
+                                                (async/>! work task)
+                                                (conj active-tasks task))
                                   :else active-tasks))
 
             :command/remove-task (disj active-tasks task)
 
-            :command/deliver-task-result (do
-                                           (async/put! result-chan [task (:event/task-result event)])
-                                           (when (contains? active-tasks task)
-                                             (async/>! work task))
-                                           active-tasks)
-            (do
-              (println "[WARN]" "Skip unknown command" command)
-              active-tasks)))
+            :command/deliver-task-result (do (async/put! result-chan [task (:event/task-result event)])
+                                             (when (contains? active-tasks task)
+                                               (async/>! work task))
+                                             active-tasks)
+            (do (println "[WARN]" "Skip unknown command" command)
+                active-tasks)))
 
         #_"else (channel service is closed)"
-        (do
-          (println "Close work channel")
-          (async/close! work))))
+        (do (println "Close work channel")
+            (async/close! work))))
 
-    (async/pipeline-blocking parallelism
+    (async/pipeline-blocking
+      parallelism
       #_to service
       (map (fn
              [task]
@@ -130,10 +127,9 @@
 (defn dummy-result-chan
   []
   (async/chan (async/dropping-buffer 10)
-    (map (fn dummy-handle-result
-           [[task result]]
-           (println "[DONE]" 'dummy-result-chan task "->" result)
-           ""))))
+              (map (fn dummy-handle-result [[task result]]
+                     (println "[DONE]" 'dummy-result-chan task "->" result)
+                     ""))))
 
 
 (comment

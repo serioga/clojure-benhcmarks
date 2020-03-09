@@ -47,7 +47,8 @@
   "https://t.me/clojure_ru/109485"
   [xs]
   (let [m (group-by :type xs)]
-    (or (m "physical") (m "postal"))))
+    (or (m "physical")
+        (m "postal"))))
 
 
 (defn find-loop
@@ -59,8 +60,9 @@
       physical physical
       (empty? r) postal
       :else (recur ({"physical" text} type)
-              (or postal ({"postal" text} type))
-              (rest r)))))
+                   (or postal
+                       ({"postal" text} type))
+                   (rest r)))))
 
 
 (defn find-priority-pred
@@ -88,7 +90,7 @@
                      (< i ^int (key old)) new
                      :else old))
                  old))
-       nil xs))))
+             nil xs))))
 
 
 (comment

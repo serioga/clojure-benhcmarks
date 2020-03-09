@@ -1,14 +1,14 @@
 (ns clojure-benchmarks.templates
   (:require
+    [cljstache.core :as cljstache]
+    [comb.template :as comb]
     [criterium.core :as criterium]
     [fleet :as fleet]
-    [comb.template :as comb]
-    [stencil.core :as stencil]
-    [stencil.parser :as stencil-parser]
+    [hbs.core :as hbs]
     [me.shenfeng.mustache :as mustache]
     [mustache.core :as mustache-java]
-    [hbs.core :as hbs]
-    [cljstache.core :as cljstache]))
+    [stencil.core :as stencil]
+    [stencil.parser :as stencil-parser]))
 
 (set! *warn-on-reflection* true)
 

@@ -164,11 +164,10 @@
           parallelism 1000
           adding (long (/ limit parallelism))
           from (async/to-chan (repeat parallelism
-                                (fn [] (.add acc adding) :done)))]
+                                      (fn [] (.add acc adding) :done)))]
       (async/<!!
-        (async/pipeline 10
-          (async/chan (async/dropping-buffer 1))
-          (map #(%)) from))
+        (async/pipeline 10 (async/chan (async/dropping-buffer 1))
+                        (map #(%)) from))
       (.sum acc)))
   ; Execution time mean : 7,458066 ms
 
@@ -357,7 +356,7 @@
         chunk-size (int 1e5)]
     (time
       (run! (fn [_] (do :nothing))
-        (partition chunk-size xs))))
+            (partition chunk-size xs))))
   "Elapsed time: 21473.9242 msecs"
 
   (let [size 1e8]

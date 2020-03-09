@@ -39,10 +39,10 @@
   "Take first from lazy seq and return printed output."
   [xs]
   (->> xs
-    (first)
-    (run-with-identity-count)
-    (with-out-str)
-    (string/trim-newline)))
+       (first)
+       (run-with-identity-count)
+       (with-out-str)
+       (string/trim-newline)))
 
 
 (comment
@@ -103,46 +103,39 @@
   (test-first (sequence (map identity-count) (range)))
   #_"identity-count: 32"
 
-  (do
-    "Reduce over chunked range"
-    (criterium/quick-bench
-      (reduce + (map inc (range 32)))))
+  (do "Reduce over chunked range"
+      (criterium/quick-bench
+        (reduce + (map inc (range 32)))))
   #_"Execution time mean : 1,363227 µs"
 
-  (do
-    "Reduce over list"
-    (criterium/quick-bench
-      (reduce + (map inc '(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31)))))
+  (do "Reduce over list"
+      (criterium/quick-bench
+        (reduce + (map inc '(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31)))))
   #_"Execution time mean : 4,787254 µs"
 
-  (do
-    "Reduce over vector (chunked)"
-    (criterium/quick-bench
-      (reduce + (map inc [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31]))))
+  (do "Reduce over vector (chunked)"
+      (criterium/quick-bench
+        (reduce + (map inc [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31]))))
   #_"Execution time mean : 1,591750 µs"
 
-  (do
-    "Transduce over finite range"
-    (criterium/quick-bench
-      (transduce (map inc) + (range 32))))
+  (do "Transduce over finite range"
+      (criterium/quick-bench
+        (transduce (map inc) + (range 32))))
   #_"Execution time mean : 493,418400 ns"
 
-  (do
-    "Transduce over infinite range"
-    (criterium/quick-bench
-      (transduce (comp (take 32) (map inc)) + (range))))
+  (do "Transduce over infinite range"
+      (criterium/quick-bench
+        (transduce (comp (take 32) (map inc)) + (range))))
   #_"Execution time mean : 1,522196 µs"
 
-  (do
-    "Transduce over list"
-    (criterium/quick-bench
-      (transduce (map inc) + '(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))))
+  (do "Transduce over list"
+      (criterium/quick-bench
+        (transduce (map inc) + '(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31))))
   #_"Execution time mean : 629,370132 ns"
 
-  (do
-    "Transduce over vector"
-    (criterium/quick-bench
-      (transduce (map inc) + [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])))
+  (do "Transduce over vector"
+      (criterium/quick-bench
+        (transduce (map inc) + [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])))
   #_"Execution time mean : 602,228853 ns"
 
   (run-with-identity-count

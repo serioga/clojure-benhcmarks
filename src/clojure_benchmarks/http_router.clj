@@ -120,25 +120,25 @@
 
   (criterium/quick-bench
     (-> (reitit-match-name :route/ping)
-      (reitit/match->path))
+        (reitit/match->path))
     #_"/api/ping")
   #_"Execution time mean : 38,991230 ns"
 
   (criterium/quick-bench
     (-> (reitit-match-name :route/ping)
-      (reitit/match->path))
+        (reitit/match->path))
     #_"/api/ping")
   #_"Execution time mean : 38,991230 ns"
 
   (criterium/quick-bench
     (-> (reitit-match-name :route/ping)
-      (reitit/match->path {:from "test"}))
+        (reitit/match->path {:from "test"}))
     #_"/api/ping?from=test")
   #_"Execution time mean : 780,966160 ns"
 
   (criterium/quick-bench
     (-> (reitit-match-name :route/order {:id "42"})
-      (reitit/match->path {:name "test"}))
+        (reitit/match->path {:name "test"}))
     #_"/api/orders/42?name=test")
   #_"Execution time mean : 1,921038 µs"
 
@@ -147,7 +147,7 @@
         {:keys [required]} match]
     (criterium/quick-bench
       (-> (reitit-match-name :route/order (select-keys params required))
-        (reitit/match->path (remove (comp required first) params)))
+          (reitit/match->path (remove (comp required first) params)))
       #_"/api/orders/42?name=test"))
   #_"Execution time mean : 3,062713 µs"
 
@@ -156,12 +156,12 @@
         {:keys [required]} match]
     (criterium/quick-bench
       (-> (reitit-match-name :route/order (select-keys params required))
-        (reitit/match->path (remove (fn [e] (required (key e))) params)))
+          (reitit/match->path (remove (fn [e] (required (key e))) params)))
       #_"/api/orders/42?name=test"))
   #_"Execution time mean : 2,702520 µs"
 
   (-> (reitit-match-name :route/order {:id "42" :name "test"})
-    (reitit/match->path {:id "42" :name "test"}))
+      (reitit/match->path {:id "42" :name "test"}))
   #_"/api/orders/42?id=42&name=test"
 
   (reitit/routes reitit-router)

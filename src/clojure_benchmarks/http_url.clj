@@ -1,6 +1,6 @@
 (ns clojure-benchmarks.http-url
   "URL manipulation."
-  (:require 
+  (:require
     [clojure.string :as string]
     [criterium.core])
   (:import
@@ -34,8 +34,8 @@
                       (MapEntry/create
                         (key-fn (URLDecoder/decode (kv 0)))
                         (URLDecoder/decode (get kv 1 "")))))
-     conj {} (some-> s
-               (string/split #"&")))))
+              conj {} (some-> s
+                              (string/split #"&")))))
 
 
 (comment
@@ -61,8 +61,8 @@
                        (MapEntry/create
                          (URLDecoder/decode (kv 0))
                          (URLDecoder/decode (get kv 1 "")))))
-      conj {} (some-> "x=1&y=2"
-                (string/split #"&")))
+               conj {} (some-> "x=1&y=2"
+                               (string/split #"&")))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 859,533138 ns"
 
@@ -71,53 +71,53 @@
                       [part]
                       (let [[k v] (string/split part #"=")]
                         (MapEntry/create (URLDecoder/decode k) (URLDecoder/decode v)))))
-      conj {} (some-> "x=1&y=2"
-                (string/split #"&")))
+               conj {} (some-> "x=1&y=2"
+                               (string/split #"&")))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 952,316967 ns"
 
   (criterium.core/quick-bench
     (transduce (map #(string/split % #"="))
-      conj {} (string/split "x=1&y=2" #"&"))
+               conj {} (string/split "x=1&y=2" #"&"))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 845,220944 ns"
 
   (criterium.core/quick-bench
     (into {}
-      (map #(string/split % #"="))
-      (string/split "x=1&y=2" #"&"))
+          (map #(string/split % #"="))
+          (string/split "x=1&y=2" #"&"))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 924,058653 ns"
 
   (criterium.core/quick-bench
     (into {}
-      (some-> "x=1&y=2"
-        (string/split #"&")
-        (->> (map #(string/split % #"=")))))
+          (some-> "x=1&y=2"
+                  (string/split #"&")
+                  (->> (map #(string/split % #"=")))))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 1,435830 µs"
 
   (criterium.core/quick-bench
     (transduce (map #(string/split % #"="))
-      conj {} (string/split "a=a&b=a&c=a&d=a&e=a" #"&"))
+               conj {} (string/split "a=a&b=a&c=a&d=a&e=a" #"&"))
     #_{"a" "a", "b" "a", "c" "a", "d" "a", "e" "a"})
   #_"Execution time mean : 1,951230 µs"
 
   (criterium.core/quick-bench
     (into {}
-      (map #(string/split % #"="))
-      (string/split "a=a&b=a&c=a&d=a&e=a" #"&"))
+          (map #(string/split % #"="))
+          (string/split "a=a&b=a&c=a&d=a&e=a" #"&"))
     #_{"a" "a", "b" "a", "c" "a", "d" "a", "e" "a"})
   #_"Execution time mean : 2,332784 µs"
 
   (criterium.core/quick-bench
     (parse-url-data "https://test.me/akzx/66617beb?x=1&y=2"))
   #_"Execution time mean : 276,869210 ns"
-  
+
   (criterium.core/quick-bench
     (URI. "https://test.me/akzx/66617beb?x=1&y=2"))
   #_"Execution time mean : 318,418939 ns"
-  
+
   (criterium.core/quick-bench
     (URL. "https://test.me/akzx/66617beb?x=1&y=2"))
   #_"Execution time mean : 259,399222 ns"

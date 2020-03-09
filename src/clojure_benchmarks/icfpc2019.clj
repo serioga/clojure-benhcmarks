@@ -40,6 +40,5 @@
   (criterium/quick-bench
     (< 1 2 3))
   (criterium/quick-bench
-    (and
-      (< 1 2)
-      (< 2 3))))
+    (and (< 1 2)
+         (< 2 3))))

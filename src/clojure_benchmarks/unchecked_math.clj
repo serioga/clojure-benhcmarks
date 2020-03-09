@@ -7,24 +7,22 @@
 
 ;; Allows both random and single-value initialization
 (defn make-matrix-v [n & [val]]
-  (long-array n
-    (repeatedly n #(long-array n
-                     (repeatedly n (fn []
-                                     (long (if val
-                                             val
-                                             (rand-int 10000)))))))))
+  (long-array
+    n (repeatedly
+        n #(long-array
+             n (repeatedly
+                 n (fn [] (long (if val val (rand-int 10000)))))))))
 
 (defn mult-matrix-v [a b]
   (let [n (count a)]
-    (long-array n
-      (for [i (range n)]
-        (long-array n
-          (for [j (range n)]
-            (reduce (fn [sum k]
-                      (unchecked-add ^long sum ^long (unchecked-multiply
-                                                       ^long (aget (aget a i) k)
-                                                       ^long (aget (aget b k) j))))
-              0 (range n))))))))
+    (long-array
+      n (for [i (range n)]
+          (long-array
+            n (for [j (range n)]
+                (reduce (fn [sum k] (unchecked-add ^long sum
+                                                   ^long (unchecked-multiply ^long (aget (aget a i) k)
+                                                                             ^long (aget (aget b k) j))))
+                        0 (range n))))))))
 
 
 (comment

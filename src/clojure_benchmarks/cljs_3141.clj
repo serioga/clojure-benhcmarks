@@ -27,7 +27,7 @@
 
 (defn encode-map-simple [n]
   (or (int->char n)
-    (throw (Error. (str "Must be between 0 and 63: " n)))))
+      (throw (Error. (str "Must be between 0 and 63: " n)))))
 
 (def chars64vec (vec chars64))
 

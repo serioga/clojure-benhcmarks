@@ -84,14 +84,14 @@
   [& [m & ms]]
   (let [conjs# (map (fn [m] `(conj ~m)) ms)]
     `(-> (or ~m {})
-       ~@conjs#)))
+         ~@conjs#)))
 
 
 (defmacro inline-fast-map-merge
   [& [m & ms]]
   (let [conjs# (map (fn [m] `(fast-map-merge ~m)) ms)]
     `(-> (or ~m {})
-       ~@conjs#)))
+         ~@conjs#)))
 
 (defn- simple?
   [x]
@@ -141,7 +141,7 @@
         sym (gensym "m__")
         steps
         (map (fn [step] `(if (nil? ~sym) nil (~sym ~step)))
-          ks)]
+             ks)]
     `(let [~sym ~m
            ~@(interleave (repeat sym) steps)]
        ~sym)))
@@ -152,11 +152,11 @@
         syms (map (comp gensym symbol) ks)]
     (vec
       (concat `(~gmap ~m)
-         (mapcat
-          (fn [sym k]
-            `(~sym (get ~gmap ~k)))
-          syms
-          ks)))))
+              (mapcat
+                (fn [sym k]
+                  `(~sym (get ~gmap ~k)))
+                syms
+                ks)))))
 
 (defn- extract-syms
   [bs]
@@ -211,10 +211,10 @@
              (if ks
                (let [k (first ks)]
                  (recur (conj bs
-                          (first syms)
-                          `(get ~(last (butlast bs)) ~k))
-                   (next ks)
-                   (next syms)))
+                              (first syms)
+                              `(get ~(last (butlast bs)) ~k))
+                        (next ks)
+                        (next syms)))
                bs))
         iter
         (fn iter
@@ -240,10 +240,10 @@
              (if ks
                (let [k (first ks)]
                  (recur (conj bs
-                          (first syms)
-                          `(get ~(last (butlast bs)) ~k))
-                   (next ks)
-                   (next syms)))
+                              (first syms)
+                              `(get ~(last (butlast bs)) ~k))
+                        (next ks)
+                        (next syms)))
                bs))
         iter
         (fn iter

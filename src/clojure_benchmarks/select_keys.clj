@@ -9,7 +9,7 @@
 
 
 (def sample (-> {:a 1, :b 2, :c nil, :d 4, :e 5}
-              (with-meta {:meta 'sample})))
+                (with-meta {:meta 'sample})))
 
 
 (defn fast-assoc
@@ -37,7 +37,7 @@
     (into {} (keep (fn [k] (let [v (sample k ::not-found)]
                              (when-not (identical? v ::not-found)
                                [k v]))))
-      [:a :b :c :x :y])
+          [:a :b :c :x :y])
     #_{:a 1, :b 2, :c nil})
   #_"Execution time mean : 421,003387 ns"
 
@@ -46,7 +46,7 @@
                           (if (identical? v ::not-found)
                             acc
                             (assoc acc k v))))
-      {} [:a :b :c :x :y])
+            {} [:a :b :c :x :y])
     #_{:a 1, :b 2, :c nil})
   #_"Execution time mean : 112,734195 ns"
 
@@ -55,7 +55,7 @@
                           (if (identical? v ::not-found)
                             acc
                             (fast-assoc acc k v))))
-      {} [:a :b :c :x :y])
+            {} [:a :b :c :x :y])
     #_{:a 1, :b 2, :c nil})
   #_"Execution time mean : 106,780543 ns"
 
@@ -65,7 +65,7 @@
                             (if (identical? v ::not-found)
                               acc
                               (assoc! acc k v))))
-        (transient {}) [:a :b :c :x :y]))
+              (transient {}) [:a :b :c :x :y]))
     #_{:a 1, :b 2, :c nil})
   #_"Execution time mean : 132,476165 ns"
 
@@ -78,7 +78,7 @@
   (criterium.core/quick-bench
     (into {} (keep (fn [k] (when-some [v (sample k)]
                              [k v])))
-      [:a :b :c :x :y])
+          [:a :b :c :x :y])
     #_{:a 1, :b 2})
   #_"Execution time mean : 372,461332 ns"
 
@@ -86,7 +86,7 @@
     (reduce (fn [acc k] (if-some [v (sample k)]
                           (assoc acc k v)
                           acc))
-      {} [:a :b :c :x :y])
+            {} [:a :b :c :x :y])
     #_{:a 1, :b 2})
   #_"Execution time mean : 82,280657 ns"
 
@@ -94,7 +94,7 @@
     (reduce (fn [acc k] (if-some [v (sample k)]
                           (fast-assoc acc k v)
                           acc))
-      {} [:a :b :c :x :y])
+            {} [:a :b :c :x :y])
     #_{:a 1, :b 2})
   #_"Execution time mean : 81,708246 ns"
 
@@ -103,7 +103,7 @@
       (reduce (fn [acc k] (if-some [v (sample k)]
                             (assoc! acc k v)
                             acc))
-        (transient {}) [:a :b :c :x :y]))
+              (transient {}) [:a :b :c :x :y]))
     #_{:a 1, :b 2})
   #_"Execution time mean : 113,563581 ns"
 
