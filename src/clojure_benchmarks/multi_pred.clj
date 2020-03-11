@@ -71,15 +71,15 @@
   ([preds, xs] (find-priority-pred nil preds xs))
   ([f, preds, xs]
    (let [match-pred (if f
-                      (let [match-pred (apply some-fn (map-indexed
-                                                        (fn [i pred] #(when (pred (val %))
-                                                                        (MapEntry. i (key %))))
-                                                        preds))]
+                      (let [match-pred (apply some-fn
+                                              (map-indexed (fn [i pred] #(when (pred (val %))
+                                                                           (MapEntry. i (key %))))
+                                                           preds))]
                         #(match-pred (MapEntry. % (f %))))
 
-                      (apply some-fn (map-indexed
-                                       (fn [i pred] #(when (pred %) (MapEntry. i %)))
-                                       preds)))]
+                      (apply some-fn
+                             (map-indexed (fn [i pred] #(when (pred %) (MapEntry. i %)))
+                                          preds)))]
 
      (reduce (fn [old, v]
                (if-some [new (match-pred v)]

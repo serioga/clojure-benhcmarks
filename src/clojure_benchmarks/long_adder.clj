@@ -165,9 +165,9 @@
           adding (long (/ limit parallelism))
           from (async/to-chan (repeat parallelism
                                       (fn [] (.add acc adding) :done)))]
-      (async/<!!
-        (async/pipeline 10 (async/chan (async/dropping-buffer 1))
-                        (map #(%)) from))
+
+      (async/<!! (async/pipeline 10 (async/chan (async/dropping-buffer 1))
+                                 (map #(%)) from))
       (.sum acc)))
   ; Execution time mean : 7,458066 ms
 
@@ -271,8 +271,7 @@
   (reduce + xs))
 
 (comment
-  (time
-    (seq-one-pass-reduce (range 1e8)))
+  (time (seq-one-pass-reduce (range 1e8)))
   "=> 4999999950000000"
 
   (let [xs (range 1e8)]
@@ -286,18 +285,15 @@
   (r/fold + xs))
 
 (comment
-  (time
-    (seq-r-fold (range 1e8)))
+  (time (seq-r-fold (range 1e8)))
   "=> 4999999950000000"
 
   (let [xs (range 1e8)]
-    (time
-      (seq-r-fold xs)))
+    (time (seq-r-fold xs)))
   "Elapsed time: 2569.7392 msecs"
 
   (let [xs (vec (range 1e8))]
-    (time
-      (seq-r-fold xs)))
+    (time (seq-r-fold xs)))
   "Elapsed time: 19666.1554 msecs")
 
 
@@ -309,8 +305,7 @@
     (.sum acc)))
 
 (comment
-  (time
-    (seq-long-adder-one-pass (range 1e8)))
+  (time (seq-long-adder-one-pass (range 1e8)))
   "=> 4999999950000000"
   "Elapsed time: 5245.6933 msecs"
   "~3× slower than 'seq-one-pass-reduce")
@@ -332,8 +327,7 @@
     (.sum acc)))
 
 (comment
-  (time
-    (seq-one-pass-reduce (range 1e8)))
+  (time (seq-one-pass-reduce (range 1e8)))
   "Elapsed time: 1757.6774 msecs"
 
   (let [xs (range 1e8)
@@ -360,8 +354,7 @@
   "Elapsed time: 21473.9242 msecs"
 
   (let [size 1e8]
-    (time
-      (seq-long-adder-futures 10000 (range size) size)))
+    (time (seq-long-adder-futures 10000 (range size) size)))
   "Elapsed time: 6016.0142 msecs"
   "Most time is about chunked sequence processing.")
 

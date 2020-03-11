@@ -8,29 +8,27 @@
 
 
 (def sibiro-routes
-  (sibiro/compile-routes
-    [[:get "/api/1" nil]
-     [:get "/api/2" nil]
-     [:get "/api/3" nil]
-     [:get "/api/4" nil]
-     [:get "/api/5" nil]
-     [:get "/api/ping" :route/ping]
-     [:get "/api/orders/:id" :route/order-get]
-     [:post "/api/orders/:id" :route/order-update]]))
+  (sibiro/compile-routes [[:get "/api/1" nil]
+                          [:get "/api/2" nil]
+                          [:get "/api/3" nil]
+                          [:get "/api/4" nil]
+                          [:get "/api/5" nil]
+                          [:get "/api/ping" :route/ping]
+                          [:get "/api/orders/:id" :route/order-get]
+                          [:post "/api/orders/:id" :route/order-update]]))
 
 
 (def reitit-router
-  (reitit/router
-    [["/api/1" {}]
-     ["/api/2" {}]
-     ["/api/3" {}]
-     ["/api/4" {}]
-     ["/api/5" {}]
-     ["/api/ping" {:name :route/ping
-                   :get :route/ping}]
-     ["/api/orders/:id" {:name :route/order
-                         :get :route/order-get
-                         :post :route/order-update}]]))
+  (reitit/router [["/api/1" {}]
+                  ["/api/2" {}]
+                  ["/api/3" {}]
+                  ["/api/4" {}]
+                  ["/api/5" {}]
+                  ["/api/ping" {:name :route/ping
+                                :get :route/ping}]
+                  ["/api/orders/:id" {:name :route/order
+                                      :get :route/order-get
+                                      :post :route/order-update}]]))
 
 
 (defn sibiro-match-path

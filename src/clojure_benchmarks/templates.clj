@@ -20,25 +20,22 @@
 
 (defn str-template
   [{:keys [code message]}]
-  (str
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>"
-    code
-    "</error_code>\n<error_msg>"
-    message
-    "</error_msg>\n</ns2:error_response>"))
+  (str "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>"
+       code
+       "</error_code>\n<error_msg>"
+       message
+       "</error_msg>\n</ns2:error_response>"))
 
 
 (def fleet-template (fleet/fleet [params] "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code><(:code params)></error_code>\n<error_msg><(:message params)></error_msg>\n</ns2:error_response>"))
 
 
 (def comb-fn-template
-  (comb/fn [params]
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code><%= (:code params) %></error_code>\n<error_msg><%= (:message params) %></error_msg>\n</ns2:error_response>"))
+  (comb/fn [params] "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code><%= (:code params) %></error_code>\n<error_msg><%= (:message params) %></error_msg>\n</ns2:error_response>"))
 
 
 (def stencil-parsed
-  (stencil-parser/parse
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>{{code}}</error_code>\n<error_msg>{{message}}</error_msg>\n</ns2:error_response>"))
+  (stencil-parser/parse "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>{{code}}</error_code>\n<error_msg>{{message}}</error_msg>\n</ns2:error_response>"))
 
 
 (defn stencil-template
@@ -47,8 +44,8 @@
 
 
 (def mustache-java-template
-  (mustache-java/mustache-compile
-    (mustache-java/mustache-factory) "mustache-java.mustache"))
+  (mustache-java/mustache-compile (mustache-java/mustache-factory)
+                                  "mustache-java.mustache"))
 
 (mustache/deftemplate
   mustache-template
@@ -57,9 +54,8 @@
 
 (defn cljstache-template
   [data]
-  (cljstache/render
-    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>{{code}}</error_code>\n<error_msg>{{message}}</error_msg>\n</ns2:error_response>"
-    data))
+  (cljstache/render "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<ns2:error_response xmlns:ns2='http://api.forticom.com/1.0/'>\n<error_code>{{code}}</error_code>\n<error_msg>{{message}}</error_msg>\n</ns2:error_response>"
+                    data))
 
 
 (comment
