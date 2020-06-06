@@ -116,12 +116,12 @@
 
   (do "Reduce native array"
       (criterium/quick-bench
-        (vec
-          (reduce (fn [^longs arr, ^long x] (if (odd? x)
-                                              (aset arr 0 (+ x (aget arr 0)))
-                                              (aset arr 1 (+ x (aget arr 1))))
-                    arr)
-                  (long-array [0 0]) sample))
+        (vec (reduce (fn [^longs arr, ^long x]
+                       (if (odd? x)
+                         (aset arr 0 (+ x (aget arr 0)))
+                         (aset arr 1 (+ x (aget arr 1))))
+                       arr)
+                     (long-array [0 0]) sample))
         #_[250000000000 249999500000]))
   #_"Execution time mean : 14,625961 ms"
   #_"Result: Fastest but too cryptic (positional identifying of accumulated values, works for values of same types only)"

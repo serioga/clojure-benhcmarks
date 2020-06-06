@@ -28,10 +28,7 @@
     (.add second first)
 
     true
-    (recur
-      (.add n -1N)
-      first
-      (.add second first))))
+    (recur (.add n -1N), first, (.add second first))))
 
 (defn fib
   [n]
@@ -43,12 +40,11 @@
   (cond
     (= 0 n) 0
     (= 1 n) 1
-    :else
-    (loop [f-2 0N, f-1 1N, x 2]
-      (let [f-0 (.add ^BigInt f-2 f-1)]
-        (if (== x n)
-          f-0
-          (recur f-1 f-0 (inc x)))))))
+    :else (loop [f-2 0N, f-1 1N, x 2]
+            (let [f-0 (.add ^BigInt f-2 f-1)]
+              (if (== x n)
+                f-0
+                (recur f-1 f-0 (inc x)))))))
 
 
 (comment

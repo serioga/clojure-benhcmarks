@@ -43,9 +43,8 @@
   ([s] (query-param->kv-pair s, identity, identity))
   ([s, key-fn, val-fn]
    (let [kv (string/split s #"=" 2)]
-     (kv-pair
-       (key-fn (URLDecoder/decode (kv 0) "UTF-8"))
-       (val-fn (URLDecoder/decode (get kv 1 "") "UTF-8"))))))
+     (kv-pair (key-fn (URLDecoder/decode (kv 0) "UTF-8"))
+              (val-fn (URLDecoder/decode (get kv 1 "") "UTF-8"))))))
 
 (defn ^:private xf'query-params->kv-pairs
   "Transformation of query param `k=v` in kv-pair representation."
@@ -180,10 +179,8 @@
            (data->query-string [["a" (range 5)]])))
   (t/is (= ""
            (data->query-string [["a" []]])))
-  (t/is (nil?
-          (data->query-string "abc")))
-  (t/is (nil?
-          (data->query-string nil))))
+  (t/is (nil? (data->query-string "abc")))
+  (t/is (nil? (data->query-string nil))))
 
 (t/deftest test'hither-and-thither
   (t/is (= "x=1&y=2&z=3&x=4+5" (-> "x=1&y=2&z=3&x=4+5"

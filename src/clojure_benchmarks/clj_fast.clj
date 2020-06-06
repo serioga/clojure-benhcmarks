@@ -46,9 +46,8 @@
 (comment
   (assoc nil 0 1)
   (assoc (fast-map {:a 1}) 0 4)
-  (fast-map-merge2
-    {:a 1}
-    {:b 2}))
+  (fast-map-merge2 {:a 1}
+                   {:b 2}))
 
 
 #_(comment

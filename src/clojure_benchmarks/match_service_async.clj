@@ -98,8 +98,7 @@
     (async/pipeline-blocking
       parallelism
       #_to service
-      (map (fn
-             [task]
+      (map (fn [task]
              (let [result (try
                             (handle-task task)
                             (catch Throwable ex

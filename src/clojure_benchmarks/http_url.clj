@@ -31,9 +31,8 @@
   ([s] (query-string->map s, identity))
   ([s, key-fn]
    (transduce (map #(let [kv (string/split % #"=" 2)]
-                      (MapEntry/create
-                        (key-fn (URLDecoder/decode (kv 0)))
-                        (URLDecoder/decode (get kv 1 "")))))
+                      (MapEntry/create (key-fn (URLDecoder/decode (kv 0)))
+                                       (URLDecoder/decode (get kv 1 "")))))
               conj {} (some-> s
                               (string/split #"&")))))
 
@@ -58,17 +57,15 @@
 
   (criterium.core/quick-bench
     (transduce (map #(let [kv (string/split % #"=" 2)]
-                       (MapEntry/create
-                         (URLDecoder/decode (kv 0))
-                         (URLDecoder/decode (get kv 1 "")))))
+                       (MapEntry/create (URLDecoder/decode (kv 0))
+                                        (URLDecoder/decode (get kv 1 "")))))
                conj {} (some-> "x=1&y=2"
                                (string/split #"&")))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 859,533138 ns"
 
   (criterium.core/quick-bench
-    (transduce (map (fn
-                      [part]
+    (transduce (map (fn [part]
                       (let [[k v] (string/split part #"=")]
                         (MapEntry/create (URLDecoder/decode k) (URLDecoder/decode v)))))
                conj {} (some-> "x=1&y=2"
@@ -90,10 +87,9 @@
   #_"Execution time mean : 924,058653 ns"
 
   (criterium.core/quick-bench
-    (into {}
-          (some-> "x=1&y=2"
-                  (string/split #"&")
-                  (->> (map #(string/split % #"=")))))
+    (into {} (some-> "x=1&y=2"
+                     (string/split #"&")
+                     (->> (map #(string/split % #"=")))))
     #_{"x" "1", "y" "2"})
   #_"Execution time mean : 1,435830 µs"
 
