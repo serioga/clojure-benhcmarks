@@ -7,6 +7,7 @@
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/core.async "0.7.559"]
                  [org.clojure/core.match "0.3.0"]
+                 [medley "1.3.0"]
                  ; http router
                  [functionalbytes/sibiro "0.1.5"]
                  [metosin/reitit "0.4.2"]
