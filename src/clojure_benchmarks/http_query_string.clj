@@ -4,6 +4,7 @@
     [clojure.test :as t]
     [criterium.core]
     [net.cgrand.xforms.rfs :as rfs]
+    [net.cgrand.xforms :as x]
     [reitit.impl])
   (:import
     (clojure.lang MapEntry)
@@ -299,3 +300,60 @@
 
 
   'comment)
+
+
+(comment
+  "Find specific parameter in the query string"
+
+  ; Long string, simple map - 1500 ns
+  (-> (query-string->map-simple "x=1&y=2&z=3")
+      (get "x"))
+
+  ; Short string, simple map - 560 ns
+  (-> (query-string->map-simple "x=1")
+      (get "x"))
+
+
+  (defn rf'some
+    "Reducing function that returns the first logical true value of (pred x)
+     for any x in coll, else nil."
+    ([] (rf'some identity))
+    ([pred]
+     (fn
+       ([])
+       ([x] x)
+       ([_ x] (when (pred x) (reduced x))))))
+
+  ; Transduce with `rf'some` - 720 ns
+  (->> (parse-query-params "x=1&y=2&z=3")
+       (transduce (xf'query-params->kv-pairs identity identity)
+                  (-> (rf'some (fn [kv] (= "x" (kv-key kv))))
+                      (completing (-> kv-val (fnil (kv-pair nil nil)))))))
+
+  ; Transduce with ad-hoc reducing function - 690 ns
+  (->> (parse-query-params "x=1&y=2&z=3")
+       (transduce (xf'query-params->kv-pairs identity identity)
+                  (fn
+                    ([])
+                    ([v] v)
+                    ([_ [k v]] (when (= "x" k) (reduced v))))))
+
+  ; net.cgrand.xforms/some with `map` - 770 ns
+  (->> (parse-query-params "x=1&y=2&z=3")
+       (x/some (comp (xf'query-params->kv-pairs identity identity)
+                     (map (fn [[k v]] (when (= "x" k) v))))))
+
+  (defn xf'map
+    "Same as `clojure.core/map` which works slower for unclear reasons."
+    ([f]
+     (fn [rf]
+       (fn
+         ([] (rf))
+         ([result] (rf result))
+         ([result input]
+          (rf result (f input)))))))
+
+  ; net.cgrand.xforms/some with `xf'map` - 730 ns
+  (->> (parse-query-params "x=1&y=2&z=3")
+       (x/some (comp (xf'query-params->kv-pairs identity identity)
+                     (xf'map (fn [[k v]] (when (= "x" k) v)))))))
