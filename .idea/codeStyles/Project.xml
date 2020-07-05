@@ -5,9 +5,6 @@
   :clojure.core/cond-&gt; 1
   :clojure.core/defmulti 1
   :clojure.core.match/match 1
-  :cursive.formatting/align-conditionals false
-  :cursive.formatting/align-maps false
-  :cursive.formatting/comment-align-column -1
   :net.cgrand.xforms/for :only-indent
 }</ClojureCodeStyleSettings>
   </code_scheme>
