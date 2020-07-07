@@ -1,5 +1,6 @@
 (ns clojure-benchmarks.string
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [cuerdas.core :as cuerdas]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -47,19 +48,22 @@
 (defn- slash-char? [c] (char-from? "/" c))
 
 (comment
-  (-> "path" (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_" 5,408585 ns"
-  (-> "path" (trimr-pred #(Character/isWhitespace ^Character %))) #_" 5,425954 ns"
-  (-> "path" (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_" 6,307924 ns"
-  (-> "path" (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_"11,562080 ns"
+  (-> "path" (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"  5,408585 ns"
+  (-> "path" (cuerdas/rtrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"712,637256 ns"
+  (-> "path" (trimr-pred #(Character/isWhitespace ^Character %))) #_"  5,425954 ns"
+  (-> "path" (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_"  6,307924 ns"
+  (-> "path" (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 11,562080 ns"
 
-  (-> "path   " (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"27,588813 ns"
-  (-> "path   " (trimr-pred #(Character/isWhitespace ^Character %))) #_"25,308149 ns"
-  (-> "path   " (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_"27,309861 ns"
-  (-> "path   " (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_"48,758966 ns"
+  (-> "path   " (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_" 27,588813 ns"
+  (-> "path   " (cuerdas/rtrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"849,094234 ns"
+  (-> "path   " (trimr-pred #(Character/isWhitespace ^Character %))) #_" 25,308149 ns"
+  (-> "path   " (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_" 27,309861 ns"
+  (-> "path   " (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 48,758966 ns"
 
-  (-> "path///" (trimr-pred #(char-from? "/" %))),,,,, #_"30,334351 ns"
-  (-> "path///" (trimr-pred (partial char-from? "/"))) #_"65,495619 ns"
-  (-> "path///" (trimr-pred #(slash-char? %))),,,,,,,, #_"31,863251 ns"
-  (-> "path///" (trimr-pred slash-char?)),,,,,,,,,,,,, #_"57,319882 ns")
+  (-> "path///" (cuerdas/rtrim "/")),,,,,,,,,,,,,,,,,, #_"851,435102 ns"
+  (-> "path///" (trimr-pred #(char-from? "/" %))),,,,, #_" 30,334351 ns"
+  (-> "path///" (trimr-pred (partial char-from? "/"))) #_" 65,495619 ns"
+  (-> "path///" (trimr-pred #(slash-char? %))),,,,,,,, #_" 31,863251 ns"
+  (-> "path///" (trimr-pred slash-char?)),,,,,,,,,,,,, #_" 57,319882 ns")
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
