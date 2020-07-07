@@ -61,6 +61,8 @@
   (-> "path   " (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 48,758966 ns"
 
   (-> "path///" (cuerdas/rtrim "/")),,,,,,,,,,,,,,,,,, #_"851,435102 ns"
+  (-> "path///" (trimr-pred #(.equals \/ %))),,,,,,,,, #_" 26,033381 ns"
+  (-> "path///" (trimr-pred #(= \/ %))),,,,,,,,,,,,,,, #_" 41,624514 ns"
   (-> "path///" (trimr-pred #(char-from? "/" %))),,,,, #_" 30,334351 ns"
   (-> "path///" (trimr-pred (partial char-from? "/"))) #_" 65,495619 ns"
   (-> "path///" (trimr-pred #(slash-char? %))),,,,,,,, #_" 31,863251 ns"
