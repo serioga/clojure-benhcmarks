@@ -35,13 +35,19 @@
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
 
+(defn- as-char-pred
+  [pred]
+  (condp instance? pred Character #(.equals ^Character pred %)
+                        String,,, #(char-from? ^String pred %)
+                        pred))
+
+;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+
 (defn ^String trimr-pred
   "Removes chars from the right side of string by `pred`.
    Accepts string (set of chars) and single char as `pred`."
   [^CharSequence s, pred]
-  (let [pred (condp instance? pred Character #(.equals ^Character pred %)
-                                   String,,, #(char-from? ^String pred %)
-                                   pred)]
+  (let [pred (as-char-pred pred)]
     (loop [i (.length s)]
       (if (zero? i)
         ""
@@ -54,25 +60,60 @@
 (comment
   (-> "path" (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"  5,892719 ns"
   (-> "path" (cuerdas/rtrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"718,482296 ns (!)"
-  (-> "path" (trimr-pred #(Character/isWhitespace ^Character %))) #_"  7,270472 ns"
-  (-> "path" (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_"  7,883876 ns"
-  (-> "path" (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_"  9,268724 ns"
+  (-> "path" (trimr-pred #(Character/isWhitespace ^Character %))) #_"  8,271516 ns"
+  (-> "path" (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_"  8,871528 ns"
+  (-> "path" (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 10,992364 ns"
 
   (-> "path   " (string/trimr)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_" 28,298732 ns"
   (-> "path   " (cuerdas/rtrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"871,570969 ns (!)"
-  (-> "path   " (trimr-pred #(Character/isWhitespace ^Character %))) #_" 30,829851 ns"
-  (-> "path   " (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_" 31,731720 ns"
-  (-> "path   " (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 33,413751 ns"
+  (-> "path   " (trimr-pred #(Character/isWhitespace ^Character %))) #_" 32,343976 ns"
+  (-> "path   " (trimr-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_" 31,909357 ns"
+  (-> "path   " (trimr-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 35,683274 ns"
 
   (-> "path///" (cuerdas/rtrim "/")),,,,,,,,,,,,,,,,,, #_"839,719600 ns (!)"
-  (-> "path///" (trimr-pred #(.equals \/ %))),,,,,,,,, #_" 26,754372 ns"
-  (-> "path///" (trimr-pred \/)),,,,,,,,,,,,,,,,,,,,,, #_" 26,514774 ns"
-  (-> "path///" (trimr-pred #(= \/ %))),,,,,,,,,,,,,,, #_" 45,278277 ns (!)"
-  (-> "path///" (trimr-pred #(char-from? "/" %))),,,,, #_" 34,791646 ns"
-  (-> "path///" (trimr-pred (partial char-from? "/"))) #_" 64,455251 ns (!)"
-  (-> "path///" (trimr-pred #(slash-char? %))),,,,,,,, #_" 29,866398 ns"
-  (-> "path///" (trimr-pred slash-char?)),,,,,,,,,,,,, #_" 31,433266 ns"
-  (-> "path///" (trimr-pred "/")),,,,,,,,,,,,,,,,,,,,, #_" 33,470413 ns")
-
+  (-> "path///" (trimr-pred #(.equals \/ %))),,,,,,,,, #_" 26,952809 ns"
+  (-> "path///" (trimr-pred \/)),,,,,,,,,,,,,,,,,,,,,, #_" 27,103821 ns"
+  (-> "path///" (trimr-pred #(= \/ %))),,,,,,,,,,,,,,, #_" 47,585515 ns (!)"
+  (-> "path///" (trimr-pred #(char-from? "/" %))),,,,, #_" 35,659722 ns"
+  (-> "path///" (trimr-pred (partial char-from? "/"))) #_" 67,514078 ns (!)"
+  (-> "path///" (trimr-pred #(slash-char? %))),,,,,,,, #_" 30,286359 ns"
+  (-> "path///" (trimr-pred slash-char?)),,,,,,,,,,,,, #_" 30,076203 ns"
+  (-> "path///" (trimr-pred "/")),,,,,,,,,,,,,,,,,,,,, #_" 34,213807 ns")
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+
+(defn ^String triml-pred
+  "Removes whitespace from the left side of string by `pred`.
+   Accepts string (set of chars) and single char as `pred`."
+  [^CharSequence s, pred]
+  (let [len (.length s)
+        pred (as-char-pred pred)]
+    (loop [index 0]
+      (if (= len index)
+        ""
+        (if (pred (.charAt s index))
+          (recur (unchecked-inc index))
+          (.toString (.subSequence s index len)))))))
+
+(comment
+  (-> "path" (string/triml)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"  5,977752 ns"
+  (-> "path" (cuerdas/ltrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"713,505783 ns (!)"
+  (-> "path" (triml-pred #(Character/isWhitespace ^Character %))) #_"  8,351322 ns"
+  (-> "path" (triml-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_"  8,630335 ns"
+  (-> "path" (triml-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 10,735374 ns"
+
+  (-> "   path" (string/triml)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_" 28,298732 ns"
+  (-> "   path" (cuerdas/ltrim)),,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,, #_"860,774839 ns (!)"
+  (-> "   path" (triml-pred #(Character/isWhitespace ^Character %))) #_" 30,994988 ns"
+  (-> "   path" (triml-pred #(whitespace-char? %))),,,,,,,,,,,,,,,,, #_" 32,184716 ns"
+  (-> "   path" (triml-pred whitespace-char?)),,,,,,,,,,,,,,,,,,,,,, #_" 33,413751 ns"
+
+  (-> "///path" (cuerdas/ltrim "/")),,,,,,,,,,,,,,,,,, #_"786,394368 ns (!)"
+  (-> "///path" (triml-pred #(.equals \/ %))),,,,,,,,, #_" 27,674655 ns"
+  (-> "///path" (triml-pred \/)),,,,,,,,,,,,,,,,,,,,,, #_" 27,807344 ns"
+  (-> "///path" (triml-pred #(= \/ %))),,,,,,,,,,,,,,, #_" 44,685301 ns (!)"
+  (-> "///path" (triml-pred #(char-from? "/" %))),,,,, #_" 33,704091 ns"
+  (-> "///path" (triml-pred (partial char-from? "/"))) #_" 65,913243 ns (!)"
+  (-> "///path" (triml-pred #(slash-char? %))),,,,,,,, #_" 28,275656 ns"
+  (-> "///path" (triml-pred slash-char?)),,,,,,,,,,,,, #_" 28,819234 ns"
+  (-> "///path" (triml-pred "/")),,,,,,,,,,,,,,,,,,,,, #_" 32,865040 ns")
