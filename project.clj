@@ -27,4 +27,4 @@
                  [mustache.clojure "0.3.0"]
                  [stencil "0.5.0"]
                  ; benchmark
-                 [criterium "0.4.5"]])
+                 [criterium "0.4.6"]])
