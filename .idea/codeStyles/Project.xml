@@ -5,6 +5,7 @@
   :clojure.core/cond-&gt; 1
   :clojure.core/defmulti 1
   :clojure.core.match/match 1
+  :clojure.test/are 2
   :net.cgrand.xforms/for :only-indent
 }</ClojureCodeStyleSettings>
   </code_scheme>
