@@ -48,8 +48,15 @@
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
 
-(defn- fn'char-equals? [test] (fn [c] (.equals ^Character test c)))
-(defn- fn'char-of?,,,, [test] (fn [c] (char-of? test c)))
+(defn fn'char-equals?
+  "Builds predicate for char equality."
+  [test]
+  (fn [c] (.equals ^Character test c)))
+
+(defn fn'char-of?
+  "Builds predicate for `char-of?`."
+  [test]
+  (fn [c] (char-of? test c)))
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
 
