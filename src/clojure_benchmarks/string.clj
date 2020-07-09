@@ -1,7 +1,8 @@
 (ns clojure-benchmarks.string
   (:require [clojure.string :as string]
             [clojure.test :as t]
-            [cuerdas.core :as cuerdas]))
+            [cuerdas.core :as cuerdas]
+            [superstring.core :as supers]))
 
 (set! *warn-on-reflection* true)
 (set! *unchecked-math* :warn-on-boxed)
@@ -247,5 +248,41 @@
   (-> "a b c" (string/split #" "), #_"245,008903 ns")
   (-> "a b c" (cuerdas/split)),,,, #_"390,468194 ns"
   (-> "a b c" (cuerdas/split " ")) #_"444,562374 ns")
+
+;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
+
+(defn trunc
+  "Truncates string `s` to the length `len`.
+   Appends `suffix` at the end if specified."
+  {:tag String
+   :test (fn [] (t/are [expected actual] (= expected actual)
+                  "12345",,, (trunc "1234567890" 5)
+                  "12345..." (trunc "1234567890" 5 "...")
+                  "12345",,, (trunc "12345",,,,, 5)
+                  "12345",,, (trunc "12345",,,,, 5 "...")
+                  "",,,,,,,, (trunc "",,,,,,,,,, 5)
+                  "",,,,,,,, (trunc "",,,,,,,,,, 5 "...")
+                  "",,,,,,,, (trunc nil,,,,,,,,, 5)
+                  "",,,,,,,, (trunc "12345",,,,, 0)))}
+  (^String [s, ^long len]
+   (let [s (str s)]
+     (if (< len (.length s))
+       (subs s 0 len)
+       s)))
+  (^String [s, ^long len, suffix]
+   (let [s (str s)]
+     (if (< len (.length s))
+       (-> (StringBuilder. s)
+           (.delete len (.length s))
+           (.append (str suffix))
+           (.toString))
+       s))))
+
+(comment
+  (-> "very long string" (cuerdas/prune 7)),,,,, #_"  3,806197 µs"
+  (-> "very long string" (supers/truncate 7)),,, #_"116,212761 ns"
+  (-> "very long string" (subs 0 4) (str "...")) #_" 97,214719 ns"
+  (-> "very long string" (trunc 4),,,,,,,,,,,,,, #_" 14,998259 ns")
+  (-> "very long string" (trunc 4 "..."),,,,,,,, #_" 27,121972 ns"))
 
 ;;;•••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••
