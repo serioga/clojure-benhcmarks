@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [; clojure
-                 [org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojure "1.10.3"]
                  [org.clojure/core.async "1.2.603"]
                  [org.clojure/core.match "1.0.0"]
                  [medley "1.3.0"]
@@ -12,6 +12,11 @@
                  ; http router
                  [functionalbytes/sibiro "0.1.5"]
                  [metosin/reitit "0.5.2"]
+                 ; json
+                 [cheshire "5.10.1"]
+                 [com.fasterxml.jackson.core/jackson-core "2.12.4"]
+                 [metosin/jsonista "0.3.3"]
+                 [org.clojure/data.json "2.4.0"]
                  ; string
                  [funcool/cuerdas "2020.03.26-3"]
                  [superstring "3.0.0"]
