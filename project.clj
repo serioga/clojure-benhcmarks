@@ -26,6 +26,7 @@
                  ; templating
                  [cljstache "2.0.6"]
                  [com.github.spullara.mustache.java/compiler "0.9.10"]
+                 [com.samskivert/jmustache "1.15"]
                  [comb "0.1.1"]
                  [de.ubercode.clostache/clostache "1.4.0"]
                  [fleet "0.10.2"]
@@ -33,7 +34,8 @@
                  [me.shenfeng/mustache "1.1"]
                  [mustache.clojure "0.3.0"]
                  [org.panchromatic/mokuhan "0.1.1"]
-                 [pogonos "0.1.1"]
+                 [pogonos "0.2.0"]
                  [stencil "0.5.0"]
+
                  ; benchmark
                  [criterium "0.4.6"]])
