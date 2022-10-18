@@ -31,6 +31,7 @@
                  [de.ubercode.clostache/clostache "1.4.0"]
                  [fleet "0.10.2"]
                  [hbs "1.0.3"]
+                 [malabarba/lazy-map "1.3"]
                  [me.shenfeng/mustache "1.1"]
                  [mustache.clojure "0.3.0"]
                  [org.panchromatic/mokuhan "0.1.1"]

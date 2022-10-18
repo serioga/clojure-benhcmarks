@@ -33,8 +33,9 @@
   (slurp (io/resource template-name)))
 
 (def test-data
-  {:items [{:name "Item 1" :price "$19.99" :features [{:description "New!"} {:description "Awesome!"}]}
-           {:name "Item 2" :price "$29.99" :features [{:description "Old."} {:description "Ugly."}]}]})
+  {:user  {:name "Dolly"}
+   :items [{:name "Item <1>" :price "$19.99" :features [{:description "New!"} {:description "Awesome!"}]}
+           {:name "Item <2>" :price "$29.99" :features [{:description "Old."} {:description "Ugly."}]}]})
 
 (def test-data-strs
   (clojure.walk/postwalk
