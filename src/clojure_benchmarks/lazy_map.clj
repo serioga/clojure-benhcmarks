@@ -1,6 +1,6 @@
 (ns clojure-benchmarks.lazy-map
   (:require [lazy-map.core :as m])
-  (:import (clojure.lang Delay IFn IKeywordLookup ILookup ILookupThunk)))
+  (:import (clojure.lang Delay IDeref IFn IKeywordLookup ILookup ILookupThunk)))
 
 (set! *warn-on-reflection* true)
 
@@ -31,6 +31,36 @@
                (case k
                  :x (reify ILookupThunk (get [_ _] (.deref -k)))
                  nil)))))
+
+(defrecord LazyVal [d])
+
+(let [nf (Object.)]
+
+  (def -m4 (let [m {:x (LazyVal. (delay :value))}]
+             (reify
+               ILookup
+               (valAt [_ k]
+                 (let [v (.valAt m k nf)]
+                   (if (identical? nf v)
+                     nil
+                     (if (instance? LazyVal v)
+                       (.deref ^IDeref (.-d ^LazyVal v))
+                       v))))
+               (valAt [_ k not-found]
+                 (let [v (.valAt m k nf)]
+                   (if (identical? nf v)
+                     not-found
+                     (if (instance? LazyVal v)
+                       (.deref ^IDeref (.-d ^LazyVal v))
+                       v))))
+               IFn
+               (invoke [_ k]
+                 (let [v (.valAt m k nf)]
+                   (if (identical? nf v)
+                     nil
+                     (if (instance? LazyVal v)
+                       (.deref ^IDeref (.-d ^LazyVal v))
+                       v))))))))
 
 (comment
   ;; Core map
@@ -94,7 +124,7 @@
   ;   Execution time lower quantile : 6,896928 ns ( 2,5%)
   ;   Execution time upper quantile : 7,609194 ns (97,5%)
 
-  ;; Hand-made lazy-map
+  ;; Hand-made static map
 
   (get -m3 :x)
   ;             Execution time mean : 10,560831 ns
@@ -138,6 +168,49 @@
   ;   Execution time lower quantile : -2,171200 ns ( 2,5%)
   ;   Execution time upper quantile : -1,967762 ns (97,5%)
 
+  ;; Hand-made proxy map
+
+  (get -m4 :x)
+  ;             Execution time mean : 8,486304 ns
+  ;    Execution time std-deviation : 0,657764 ns
+  ;   Execution time lower quantile : 7,845549 ns ( 2,5%)
+  ;   Execution time upper quantile : 9,166753 ns (97,5%)
+
+  (:x -m4)
+  ;             Execution time mean : 8,710988 ns
+  ;    Execution time std-deviation : 0,686527 ns
+  ;   Execution time lower quantile : 8,220973 ns ( 2,5%)
+  ;   Execution time upper quantile : 9,838762 ns (97,5%)
+
+  (-m4 :x)
+  ;             Execution time mean : 7,881392 ns
+  ;    Execution time std-deviation : 0,464188 ns
+  ;   Execution time lower quantile : 7,357424 ns ( 2,5%)
+  ;   Execution time upper quantile : 8,305987 ns (97,5%)
+
+  (get -m4 :y)
+  ;             Execution time mean : 0,894357 ns
+  ;    Execution time std-deviation : 0,341966 ns
+  ;   Execution time lower quantile : 0,472623 ns ( 2,5%)
+  ;   Execution time upper quantile : 1,316112 ns (97,5%)
+
+  (get -m4 :y :z)
+  ;             Execution time mean : 6,755460 ns
+  ;    Execution time std-deviation : 0,465605 ns
+  ;   Execution time lower quantile : 6,186655 ns ( 2,5%)
+  ;   Execution time upper quantile : 7,144741 ns (97,5%)
+
+  (:y -m4)
+  ;             Execution time mean : 1,745147 ns
+  ;    Execution time std-deviation : 0,240907 ns
+  ;   Execution time lower quantile : 1,501153 ns ( 2,5%)
+  ;   Execution time upper quantile : 2,009375 ns (97,5%)
+
+  (:y -m4 :z)
+  ;             Execution time mean : 4,050994 ns
+  ;    Execution time std-deviation : 0,285502 ns
+  ;   Execution time lower quantile : 3,738668 ns ( 2,5%)
+  ;   Execution time upper quantile : 4,380618 ns (97,5%)
   )
 
 ;;,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
